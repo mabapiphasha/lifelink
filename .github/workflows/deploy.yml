@@ -17,11 +17,10 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: '20'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Build
         run: npm run build
@@ -34,8 +33,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Sync build to S3
-        run: |
-          aws s3 sync build/ s3://lifelink-frontend-hosting --delete
+        run: aws s3 sync build/ s3://lifelink-frontend-hosting --delete
 
       - name: Invalidate CloudFront cache
         run: |
