@@ -1,6 +1,5 @@
 
-// Replace this with your actual API Gateway URL
-const API_BASE_URL = 'https://bgchqkrcff.execute-api.us-east-1.amazonaws.com/default';
+const API_BASE_URL = 'https://api8jqb1a1.execute-api.us-east-1.amazonaws.com/default';
 
 export const API = {
   verifyCode: `${API_BASE_URL}/verifyDonorCode`,
