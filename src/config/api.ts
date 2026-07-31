@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://api8jqb1a1.execute-api.us-east-1.amazonaws.com';
+const API_BASE_URL = 'https://api8jqb1a1.execute-api.us-east-1.amazonaws.com/default';
 
 export const API = {
   verifyCode:              `${API_BASE_URL}/verifyDonorCode`,
