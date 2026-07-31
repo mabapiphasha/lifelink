@@ -1,9 +1,11 @@
 
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
+import { HospitalAuthProvider } from './context/HospitalAuthContext';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { DonorRegister } from './pages/DonorRegister';
 import { HospitalDashboard } from './pages/HospitalDashboard';
+import { HospitalLogin } from './pages/HospitalLogin';
 import { MatchingResults } from './pages/MatchingResults';
 import { DonorNotification } from './pages/DonorNotification';
 import { OrganBulletin } from './pages/OrganBulletin';
@@ -43,7 +45,7 @@ function Home() {
           <p className="text-gray-500 text-lg mb-10 max-w-xl mx-auto">{t('home.heroSubtitle')}</p>
           <div className="flex gap-4 justify-center">
             <Link to="/verify-code" className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg shadow-red-200 transition-all hover:scale-105 active:scale-95">{t('home.registerBtn')}</Link>
-            <Link to="/hospital" className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg shadow-green-200 transition-all hover:scale-105 active:scale-95">{t('home.hospitalBtn')}</Link>
+            <Link to="/hospital-login" className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg shadow-green-200 transition-all hover:scale-105 active:scale-95">{t('home.hospitalBtn')}</Link>
           </div>
         </div>
 
@@ -107,25 +109,28 @@ function Home() {
 function App() {
   return (
     <LanguageProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/donor" element={<DonorRegister />} />
-          <Route path="/verify-code" element={<CodeVerification />} />
-          <Route path="/issue-code" element={<HospitalCodeIssuance />} />
-          <Route path="/hospital" element={<HospitalDashboard />} />
-          <Route path="/matching" element={<MatchingResults />} />
-          <Route path="/notification" element={<DonorNotification />} />
-          <Route path="/organ" element={<OrganBulletin />} />
-          <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/prescreening" element={<PreScreening />} />
-          <Route path="/tracker" element={<ApplicationTracker />} />
-          <Route path="/inventory" element={<BloodBankInventory />} />
-          <Route path="/cooldown" element={<CooldownTracker />} />
-          <Route path="/urgency" element={<UrgencyRequestManager />} />
-          <Route path="/predictions" element={<PredictiveDemand />} />
-        </Routes>
-      </BrowserRouter>
+      <HospitalAuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/donor" element={<DonorRegister />} />
+            <Route path="/verify-code" element={<CodeVerification />} />
+            <Route path="/issue-code" element={<HospitalCodeIssuance />} />
+            <Route path="/hospital-login" element={<HospitalLogin />} />
+            <Route path="/hospital" element={<HospitalDashboard />} />
+            <Route path="/matching" element={<MatchingResults />} />
+            <Route path="/notification" element={<DonorNotification />} />
+            <Route path="/organ" element={<OrganBulletin />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/prescreening" element={<PreScreening />} />
+            <Route path="/tracker" element={<ApplicationTracker />} />
+            <Route path="/inventory" element={<BloodBankInventory />} />
+            <Route path="/cooldown" element={<CooldownTracker />} />
+            <Route path="/urgency" element={<UrgencyRequestManager />} />
+            <Route path="/predictions" element={<PredictiveDemand />} />
+          </Routes>
+        </BrowserRouter>
+      </HospitalAuthProvider>
     </LanguageProvider>
   );
 }

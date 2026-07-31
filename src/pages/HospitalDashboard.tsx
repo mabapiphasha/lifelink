@@ -1,11 +1,15 @@
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BloodType, UrgencyTier, BloodRequest } from '../types';
 import axios from 'axios';
 import { API } from '../config/api';
+import { useHospitalAuth } from '../context/HospitalAuthContext';
 
 export function HospitalDashboard() {
+  const navigate = useNavigate();
+  const { hospital, logout, isLoggedIn } = useHospitalAuth();
+
   const [requests, setRequests] = useState<BloodRequest[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [newRequest, setNewRequest] = useState({ bloodType: '' as BloodType, urgency: 'High' as UrgencyTier, unitsNeeded: 1 });
@@ -14,6 +18,13 @@ export function HospitalDashboard() {
   const [error, setError] = useState('');
 
   const bloodTypes: BloodType[] = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate('/hospital-login');
+    }
+  }, [isLoggedIn, navigate]);
 
   // Fetch existing requests on page load
   useEffect(() => {
@@ -39,7 +50,8 @@ export function HospitalDashboard() {
 
     try {
       const response = await axios.post(API.createBloodRequest, {
-        hospitalName: 'Groote Schuur Hospital',
+        hospitalId: hospital?.hospitalId,
+        hospitalName: hospital?.hospitalName || 'Groote Schuur Hospital',
         bloodType: newRequest.bloodType,
         urgency: newRequest.urgency,
         unitsNeeded: newRequest.unitsNeeded,
@@ -81,14 +93,22 @@ export function HospitalDashboard() {
       <nav className="bg-red-800 text-white p-4 shadow-lg">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link to="/" className="text-2xl font-bold">🩸 LifeLink</Link>
-          <span className="text-sm font-medium">Hospital Dashboard</span>
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium opacity-90">🏥 {hospital?.hospitalName}</span>
+            <button
+              onClick={() => { logout(); navigate('/hospital-login'); }}
+              className="bg-red-700 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg transition-all"
+            >
+              Sign Out
+            </button>
+          </div>
         </div>
       </nav>
       <main className="max-w-4xl mx-auto px-8 py-12">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-3xl font-bold text-gray-900">Blood Requests</h2>
-            <p className="text-gray-500">Groote Schuur Hospital, Cape Town</p>
+            <p className="text-gray-500">{hospital?.hospitalName}, {hospital?.location}</p>
           </div>
           <button onClick={() => setShowForm(!showForm)} className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-all hover:scale-105 active:scale-95">+ New Request</button>
         </div>
