@@ -39,12 +39,10 @@ export function HospitalDashboard() {
 
     try {
       const response = await axios.post(API.createBloodRequest, {
-        hospital: 'Groote Schuur Hospital',
+        hospitalName: 'Groote Schuur Hospital',
         bloodType: newRequest.bloodType,
-        urgency: newRequest.urgency.toLowerCase(),
-        units: newRequest.unitsNeeded,
-        contactName: 'Hospital Admin',
-        contactPhone: '+27 21 404 9111',
+        urgency: newRequest.urgency,
+        unitsNeeded: newRequest.unitsNeeded,
       });
 
       if (response.data.success) {

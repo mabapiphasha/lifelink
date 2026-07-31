@@ -10,7 +10,7 @@ export function DonorRegister() {
   const verifiedData = location.state || {};
 
   const [formData, setFormData] = useState({
-    name: verifiedData.donorName || '',
+    fullName: verifiedData.donorName || '',
     email: '',
     phone: '',
     bloodType: (verifiedData.bloodType || '') as BloodType,
@@ -28,14 +28,17 @@ export function DonorRegister() {
     setError('');
 
     try {
-      const response = await axios.post(API.registerDonor, {
-        name: formData.name,
+      const payload: any = {
+        fullName: formData.fullName,
         email: formData.email,
         phone: formData.phone,
         bloodType: formData.bloodType,
         location: formData.location,
-        code: verifiedData.code || null,
-      });
+      };
+      if (verifiedData.code) {
+        payload.code = verifiedData.code;
+      }
+      const response = await axios.post(API.registerDonor, payload);
 
       if (response.data.success) {
         setSubmitted(true);
@@ -57,7 +60,7 @@ export function DonorRegister() {
         <div className="bg-white rounded-2xl p-10 shadow-lg text-center max-w-md">
           <div className="text-5xl mb-4">✅</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Registration Complete!</h2>
-          <p className="text-gray-500 mb-6">Thank you, {formData.name}. You are now a registered LifeLink donor.</p>
+          <p className="text-gray-500 mb-6">Thank you, {formData.fullName}. You are now a registered LifeLink donor.</p>
           <p className="text-gray-400 text-sm mb-6">You will receive notifications when a hospital near you needs your blood type.</p>
           <Link to="/" className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium">Back to Home</Link>
         </div>
@@ -79,7 +82,7 @@ export function DonorRegister() {
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 shadow-md border border-gray-100 space-y-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-            <input type="text" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="e.g. Khethukuthula Sabela" />
+            <input type="text" required value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})} className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="e.g. Khethukuthula Sabela" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>

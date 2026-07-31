@@ -69,6 +69,7 @@ export function OrganBulletin() {
 
     try {
       const response = await axios.post(API.submitOrganApplication, {
+        requestId: req.id,
         organ: req.organType,
         hospital: req.hospital,
         bloodType: req.bloodTypeNeeded,
