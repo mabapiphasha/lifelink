@@ -3,6 +3,25 @@ export type UrgencyTier = 'Critical' | 'High' | 'Standard';
 export type RequestStatus = 'Open' | 'Matched' | 'Fulfilled' | 'Expired';
 export type DonorStatus = 'Available' | 'Cooldown' | 'Unavailable';
 
+export type OrganType =
+  | 'Kidney'
+  | 'Liver'
+  | 'Heart'
+  | 'Lung'
+  | 'Pancreas'
+  | 'Intestine'
+  | 'Cornea'
+  | 'Skin'
+  | 'Bone Marrow'
+  | 'Heart Valve';
+
+export type OrganApplicationStatus =
+  | 'Applied'
+  | 'Under Review'
+  | 'Invited'
+  | 'Approved'
+  | 'Not Eligible';
+
 export interface Donor {
   id: string;
   name: string;
@@ -28,20 +47,37 @@ export interface BloodRequest {
 
 export interface OrganRequest {
   id: string;
-  organType: string;
+  organType: OrganType;
   bloodTypeCompatibility: BloodType[];
   urgency: UrgencyTier;
   hospitalId: string;
   hospitalName: string;
   location: string;
+  patientAge?: number;
+  patientGender?: string;
+  notes?: string;
   status: 'Open' | 'Closed';
   createdAt: string;
+  applicantCount?: number;
 }
 
 export interface OrganApplication {
   id: string;
   requestId: string;
+  organType: OrganType;
   donorId: string;
-  status: 'Applied' | 'Under Review' | 'Invited' | 'Approved' | 'Not Eligible';
+  donorName: string;
+  donorEmail: string;
+  donorPhone: string;
+  bloodType: BloodType;
+  age: number;
+  bmi?: number;
+  smokingStatus: string;
+  alcoholUse: string;
+  existingConditions: string[];
+  medications: string[];
+  status: OrganApplicationStatus;
   submittedAt: string;
+  updatedAt?: string;
+  notes?: string;
 }
