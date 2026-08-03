@@ -463,7 +463,7 @@ export function HospitalDashboard() {
                             {req.patientAge && <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Patient: {req.patientAge}y {req.patientGender}</span>}
                           </div>
                           <p className="text-xs text-gray-500 mt-1">
-                            Compatible: {req.bloodTypeCompatibility.join(', ')} &bull; {req.applicantCount || 0} applicants
+                            Compatible: {Array.isArray(req.bloodTypeCompatibility) ? req.bloodTypeCompatibility.join(', ') : (req.bloodTypeCompatibility as any)?.values?.join(', ') || '—'} &bull; {req.applicantCount || 0} applicants
                           </p>
                         </div>
                       </div>
