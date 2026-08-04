@@ -14,4 +14,7 @@ export const API = {
   getOrganRequests: `${API_BASE_URL}/getOrganRequests`,
   getOrganApplicationsByHospital: `${API_BASE_URL}/getOrganApplicationsByHospital`,
   updateOrganApplicationStatus: `${API_BASE_URL}/updateOrganApplicationStatus`,
+
+  // Donor-facing application tracking
+  getOrganApplicationsByDonor: `${API_BASE_URL}/getOrganApplicationsByDonor`,
 };

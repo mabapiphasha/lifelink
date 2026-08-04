@@ -80,4 +80,6 @@ export interface OrganApplication {
   submittedAt: string;
   updatedAt?: string;
   notes?: string;
+  urgency?: UrgencyTier;
+  hospitalName?: string;
 }

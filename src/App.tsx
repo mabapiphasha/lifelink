@@ -11,7 +11,7 @@ import { DonorNotification } from './pages/DonorNotification';
 import { OrganBulletin } from './pages/OrganBulletin';
 import { Leaderboard } from './pages/Leaderboard';
 import { PreScreening } from './pages/PreScreening';
-import { ApplicationTracker } from './pages/ApplicationTracker';
+import { DonorApplication } from './pages/DonorApplication';
 import { CodeVerification } from './pages/CodeVerification';
 import { HospitalCodeIssuance } from './pages/HospitalCodeIssuance';
 import { BloodBankInventory } from './pages/BloodBankInventory';
@@ -31,7 +31,6 @@ function Home() {
             <Link to="/verify-code" className="hover:text-red-200 transition-colors">{t('nav.registerWithCode')}</Link>
             <Link to="/hospital" className="hover:text-red-200 transition-colors">{t('nav.hospitalDashboard')}</Link>
             <Link to="/organ" className="hover:text-red-200 transition-colors">{t('nav.organDonation')}</Link>
-            <Link to="/tracker" className="hover:text-red-200 transition-colors">My Applications</Link>
             <Link to="/leaderboard" className="hover:text-red-200 transition-colors">{t('nav.leaderboard')}</Link>
           </div>
           <LanguageSwitcher />
@@ -123,7 +122,7 @@ function App() {
             <Route path="/organ" element={<OrganBulletin />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/prescreening" element={<PreScreening />} />
-            <Route path="/tracker" element={<ApplicationTracker />} />
+          <Route path="/donor-application" element={<DonorApplication />} />
             <Route path="/inventory" element={<BloodBankInventory />} />
             <Route path="/cooldown" element={<CooldownTracker />} />
             <Route path="/urgency" element={<UrgencyRequestManager />} />

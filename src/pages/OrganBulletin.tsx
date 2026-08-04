@@ -156,7 +156,7 @@ export function OrganBulletin() {
           <p className="text-sm text-gray-400 mb-4">Reference: <span className="font-mono font-bold text-gray-700">{success.refNumber}</span></p>
           <p className="text-sm text-gray-500 mb-6">The transplant team will review your application within 1-3 business days.</p>
           <div className="space-y-3">
-            <button onClick={() => navigate('/tracker')} className="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium">Track Application →</button>
+            <button onClick={() => navigate('/donor-application')} className="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium">Track Application →</button>
             <button onClick={() => setSuccess(null)} className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium">Browse More Requests</button>
           </div>
         </div>
