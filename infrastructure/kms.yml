@@ -1,0 +1,190 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  LifeLink KMS Infrastructure - Symmetric CMK for encrypting sensitive
+  donor and medical data across DynamoDB, S3, SNS, and CloudWatch Logs.
+
+Parameters:
+  LambdaExecutionRoleName:
+    Type: String
+    Default: LifeLink-Lambda-ExecutionRole
+    Description: Name of the existing Lambda execution role
+
+Resources:
+  # =============================================================
+  # KMS KEY
+  # Symmetric CMK used to encrypt all sensitive LifeLink data.
+  # Key rotation is enabled for compliance best practices.
+  # =============================================================
+  LifeLinkKMSKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: LifeLink CMK - Encrypts donor info, medical records, blood/organ matching data
+      Enabled: true
+      EnableKeyRotation: true
+      KeySpec: SYMMETRIC_DEFAULT
+      KeyUsage: ENCRYPT_DECRYPT
+      PendingWindowInDays: 14
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          # Root account gets full access for key administration
+          - Sid: RootAccountFullAccess
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+
+          # Lambda execution role can encrypt/decrypt donor data
+          - Sid: LambdaEncryptDecrypt
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${LambdaExecutionRoleName}'
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:GenerateDataKey
+              - kms:GenerateDataKeyWithoutPlaintext
+              - kms:DescribeKey
+            Resource: '*'
+
+          # DynamoDB service can use key for table encryption (SSE)
+          - Sid: DynamoDBSSE
+            Effect: Allow
+            Principal:
+              Service: dynamodb.amazonaws.com
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:GenerateDataKey
+              - kms:DescribeKey
+              - kms:CreateGrant
+              - kms:ListGrants
+              - kms:RevokeGrant
+            Resource: '*'
+            Condition:
+              StringEquals:
+                kms:ViaService: !Sub 'dynamodb.${AWS::Region}.amazonaws.com'
+                kms:CallerAccount: !Ref AWS::AccountId
+
+          # SNS service can encrypt notification messages at rest
+          - Sid: SNSEncryption
+            Effect: Allow
+            Principal:
+              Service: sns.amazonaws.com
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:GenerateDataKey
+              - kms:DescribeKey
+            Resource: '*'
+
+          # CloudWatch Logs can encrypt log data at rest
+          - Sid: CloudWatchLogsEncryption
+            Effect: Allow
+            Principal:
+              Service: !Sub 'logs.${AWS::Region}.amazonaws.com'
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:GenerateDataKey
+              - kms:DescribeKey
+            Resource: '*'
+            Condition:
+              ArnLike:
+                kms:EncryptionContext:aws:logs:arn: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*'
+
+  # Friendly alias so other stacks/services can reference by name
+  LifeLinkKMSKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/lifelink-encryption-key
+      TargetKeyId: !Ref LifeLinkKMSKey
+
+  # =============================================================
+  # DynamoDB TABLE ENCRYPTION
+  # Tables already exist - enable KMS encryption via CLI after deploy:
+  #
+  # aws dynamodb update-table --table-name Donors \
+  #   --sse-specification Enabled=true,SSEType=KMS,KMSMasterKeyId=<KMS_KEY_ARN>
+  # aws dynamodb update-table --table-name Requests \
+  #   --sse-specification Enabled=true,SSEType=KMS,KMSMasterKeyId=<KMS_KEY_ARN>
+  # aws dynamodb update-table --table-name Matches \
+  #   --sse-specification Enabled=true,SSEType=KMS,KMSMasterKeyId=<KMS_KEY_ARN>
+  # aws dynamodb update-table --table-name DonationHistory \
+  #   --sse-specification Enabled=true,SSEType=KMS,KMSMasterKeyId=<KMS_KEY_ARN>
+  # aws dynamodb update-table --table-name OrganRequests \
+  #   --sse-specification Enabled=true,SSEType=KMS,KMSMasterKeyId=<KMS_KEY_ARN>
+  # aws dynamodb update-table --table-name OrganApplications \
+  #   --sse-specification Enabled=true,SSEType=KMS,KMSMasterKeyId=<KMS_KEY_ARN>
+  # =============================================================
+
+  # =============================================================
+  # S3 BUCKET ENCRYPTION - Frontend hosting bucket with SSE-KMS
+  # =============================================================
+  FrontendBucketEncryption:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: lifelink-frontend-hosting
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyUnencryptedUploads
+            Effect: Deny
+            Principal: '*'
+            Action: s3:PutObject
+            Resource: arn:aws:s3:::lifelink-frontend-hosting/*
+            Condition:
+              StringNotEquals:
+                s3:x-amz-server-side-encryption: aws:kms
+
+  # =============================================================
+  # SNS TOPIC - Encrypted notification topic for donor SMS alerts
+  # =============================================================
+  LifeLinkNotificationsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: lifelink-notifications
+      DisplayName: LifeLink Donor Notifications
+      KmsMasterKeyId: !Ref LifeLinkKMSKey
+
+  # =============================================================
+  # IAM POLICY - Attach KMS permissions to Lambda execution role
+  # =============================================================
+  LambdaKMSPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: LifeLink-Lambda-KMS-Access
+      Roles:
+        - !Ref LambdaExecutionRoleName
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowKMSOperations
+            Effect: Allow
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:GenerateDataKey
+              - kms:GenerateDataKeyWithoutPlaintext
+              - kms:DescribeKey
+            Resource: !GetAtt LifeLinkKMSKey.Arn
+
+Outputs:
+  KMSKeyId:
+    Description: LifeLink KMS Key ID
+    Value: !Ref LifeLinkKMSKey
+    Export:
+      Name: LifeLink-KMS-KeyId
+
+  KMSKeyArn:
+    Description: LifeLink KMS Key ARN
+    Value: !GetAtt LifeLinkKMSKey.Arn
+    Export:
+      Name: LifeLink-KMS-KeyArn
+
+  NotificationsTopicArn:
+    Description: Encrypted SNS Topic for notifications
+    Value: !Ref LifeLinkNotificationsTopic
+    Export:
+      Name: LifeLink-Notifications-TopicArn

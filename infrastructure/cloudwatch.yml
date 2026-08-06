@@ -1,0 +1,409 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  LifeLink CloudWatch Infrastructure - Log groups, dashboard, and alarms
+  for monitoring all Lambda functions, API Gateway, and DynamoDB.
+
+Parameters:
+  KMSKeyArn:
+    Type: String
+    Description: ARN of the LifeLink KMS key (from kms.yml stack output)
+
+  AlertEmail:
+    Type: String
+    Description: Email address for operational alarm notifications
+
+  APIGatewayName:
+    Type: String
+    Default: lifelink-api
+    Description: API Gateway REST API name
+
+Resources:
+  # =============================================================
+  # SNS TOPIC - Operational alerts for the engineering team
+  # =============================================================
+  OpsAlertsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: lifelink-ops-alerts
+      DisplayName: LifeLink Ops Alerts
+      KmsMasterKeyId: !Ref KMSKeyArn
+
+  OpsAlertsSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn: !Ref OpsAlertsTopic
+      Protocol: email
+      Endpoint: !Ref AlertEmail
+
+  # =============================================================
+  # LOG GROUPS - One per Lambda function, encrypted with KMS
+  # 30-day retention to balance cost and debugging needs
+  # =============================================================
+  MatchingEngineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/LifeLink-MatchingEngine
+      RetentionInDays: 30
+      KmsKeyId: !Ref KMSKeyArn
+
+  NotificationsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/LifeLink-Notifications
+      RetentionInDays: 30
+      KmsKeyId: !Ref KMSKeyArn
+
+  DonorCRUDLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/LifeLink-DonorCRUD
+      RetentionInDays: 30
+      KmsKeyId: !Ref KMSKeyArn
+
+  RequestMgmtLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/LifeLink-RequestMgmt
+      RetentionInDays: 30
+      KmsKeyId: !Ref KMSKeyArn
+
+  # =============================================================
+  # ALARMS - Lambda Errors (triggers when errors > 5 in 5 min)
+  # =============================================================
+  MatchingEngineErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: LifeLink-MatchingEngine-Errors
+      AlarmDescription: MatchingEngine Lambda errors exceeded threshold
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: LifeLink-MatchingEngine
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref OpsAlertsTopic
+
+  NotificationsErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: LifeLink-Notifications-Errors
+      AlarmDescription: Notifications Lambda errors exceeded threshold
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: LifeLink-Notifications
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref OpsAlertsTopic
+
+  DonorCRUDErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: LifeLink-DonorCRUD-Errors
+      AlarmDescription: DonorCRUD Lambda errors exceeded threshold
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: LifeLink-DonorCRUD
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref OpsAlertsTopic
+
+  RequestMgmtErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: LifeLink-RequestMgmt-Errors
+      AlarmDescription: RequestMgmt Lambda errors exceeded threshold
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: LifeLink-RequestMgmt
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref OpsAlertsTopic
+
+  # =============================================================
+  # ALARMS - Lambda Duration (triggers when > 10 seconds)
+  # =============================================================
+  MatchingEngineDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: LifeLink-MatchingEngine-HighDuration
+      AlarmDescription: MatchingEngine Lambda duration exceeded 10s
+      Namespace: AWS/Lambda
+      MetricName: Duration
+      Dimensions:
+        - Name: FunctionName
+          Value: LifeLink-MatchingEngine
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 10000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref OpsAlertsTopic
+
+  NotificationsDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: LifeLink-Notifications-HighDuration
+      AlarmDescription: Notifications Lambda duration exceeded 10s
+      Namespace: AWS/Lambda
+      MetricName: Duration
+      Dimensions:
+        - Name: FunctionName
+          Value: LifeLink-Notifications
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 10000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref OpsAlertsTopic
+
+  DonorCRUDDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: LifeLink-DonorCRUD-HighDuration
+      AlarmDescription: DonorCRUD Lambda duration exceeded 10s
+      Namespace: AWS/Lambda
+      MetricName: Duration
+      Dimensions:
+        - Name: FunctionName
+          Value: LifeLink-DonorCRUD
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 10000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref OpsAlertsTopic
+
+  RequestMgmtDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: LifeLink-RequestMgmt-HighDuration
+      AlarmDescription: RequestMgmt Lambda duration exceeded 10s
+      Namespace: AWS/Lambda
+      MetricName: Duration
+      Dimensions:
+        - Name: FunctionName
+          Value: LifeLink-RequestMgmt
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 10000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref OpsAlertsTopic
+
+  # =============================================================
+  # ALARM - API Gateway 5XX Errors (> 10 in 5 minutes)
+  # =============================================================
+  APIGateway5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: LifeLink-API-5xxErrors
+      AlarmDescription: API Gateway 5XX errors exceeded threshold
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: ApiName
+          Value: !Ref APIGatewayName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 10
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref OpsAlertsTopic
+
+  # =============================================================
+  # ALARM - DynamoDB Throttled Requests (any throttling = alert)
+  # =============================================================
+  DynamoDBThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: LifeLink-DynamoDB-Throttling
+      AlarmDescription: DynamoDB requests are being throttled
+      Namespace: AWS/DynamoDB
+      MetricName: ThrottledRequests
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref OpsAlertsTopic
+
+  # =============================================================
+  # DASHBOARD - LifeLink Operations Overview
+  # Widgets: Lambda, API Gateway, DynamoDB, SNS metrics
+  # =============================================================
+  LifeLinkDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: LifeLink-Operations
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "text",
+              "x": 0, "y": 0, "width": 24, "height": 1,
+              "properties": {
+                "markdown": "# 🩸 LifeLink Operations Dashboard"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0, "y": 1, "width": 12, "height": 6,
+              "properties": {
+                "title": "Lambda Invocations",
+                "region": "${AWS::Region}",
+                "period": 300,
+                "stat": "Sum",
+                "metrics": [
+                  ["AWS/Lambda", "Invocations", "FunctionName", "LifeLink-MatchingEngine", {"label": "MatchingEngine"}],
+                  ["AWS/Lambda", "Invocations", "FunctionName", "LifeLink-Notifications", {"label": "Notifications"}],
+                  ["AWS/Lambda", "Invocations", "FunctionName", "LifeLink-DonorCRUD", {"label": "DonorCRUD"}],
+                  ["AWS/Lambda", "Invocations", "FunctionName", "LifeLink-RequestMgmt", {"label": "RequestMgmt"}]
+                ]
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12, "y": 1, "width": 12, "height": 6,
+              "properties": {
+                "title": "Lambda Errors",
+                "region": "${AWS::Region}",
+                "period": 300,
+                "stat": "Sum",
+                "metrics": [
+                  ["AWS/Lambda", "Errors", "FunctionName", "LifeLink-MatchingEngine", {"label": "MatchingEngine", "color": "#d62728"}],
+                  ["AWS/Lambda", "Errors", "FunctionName", "LifeLink-Notifications", {"label": "Notifications", "color": "#ff7f0e"}],
+                  ["AWS/Lambda", "Errors", "FunctionName", "LifeLink-DonorCRUD", {"label": "DonorCRUD", "color": "#9467bd"}],
+                  ["AWS/Lambda", "Errors", "FunctionName", "LifeLink-RequestMgmt", {"label": "RequestMgmt", "color": "#8c564b"}]
+                ]
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0, "y": 7, "width": 12, "height": 6,
+              "properties": {
+                "title": "API Gateway - Request Count & Errors",
+                "region": "${AWS::Region}",
+                "period": 300,
+                "metrics": [
+                  ["AWS/ApiGateway", "Count", "ApiName", "${APIGatewayName}", {"stat": "Sum", "label": "Total Requests"}],
+                  ["AWS/ApiGateway", "4XXError", "ApiName", "${APIGatewayName}", {"stat": "Sum", "label": "4XX Errors"}],
+                  ["AWS/ApiGateway", "5XXError", "ApiName", "${APIGatewayName}", {"stat": "Sum", "label": "5XX Errors"}]
+                ]
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12, "y": 7, "width": 12, "height": 6,
+              "properties": {
+                "title": "API Gateway - Latency",
+                "region": "${AWS::Region}",
+                "period": 300,
+                "metrics": [
+                  ["AWS/ApiGateway", "Latency", "ApiName", "${APIGatewayName}", {"stat": "Average", "label": "Avg Latency"}],
+                  ["AWS/ApiGateway", "Latency", "ApiName", "${APIGatewayName}", {"stat": "p99", "label": "p99 Latency"}],
+                  ["AWS/ApiGateway", "IntegrationLatency", "ApiName", "${APIGatewayName}", {"stat": "Average", "label": "Integration Latency"}]
+                ]
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0, "y": 13, "width": 12, "height": 6,
+              "properties": {
+                "title": "DynamoDB - Read/Write Capacity",
+                "region": "${AWS::Region}",
+                "period": 300,
+                "stat": "Sum",
+                "metrics": [
+                  ["AWS/DynamoDB", "ConsumedReadCapacityUnits", "TableName", "Donors", {"label": "Donors Reads"}],
+                  ["AWS/DynamoDB", "ConsumedWriteCapacityUnits", "TableName", "Donors", {"label": "Donors Writes"}],
+                  ["AWS/DynamoDB", "ConsumedReadCapacityUnits", "TableName", "Requests", {"label": "Requests Reads"}],
+                  ["AWS/DynamoDB", "ConsumedWriteCapacityUnits", "TableName", "Requests", {"label": "Requests Writes"}],
+                  ["AWS/DynamoDB", "ConsumedReadCapacityUnits", "TableName", "Matches", {"label": "Matches Reads"}],
+                  ["AWS/DynamoDB", "ConsumedWriteCapacityUnits", "TableName", "Matches", {"label": "Matches Writes"}]
+                ]
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12, "y": 13, "width": 12, "height": 6,
+              "properties": {
+                "title": "SNS - Messages Published",
+                "region": "${AWS::Region}",
+                "period": 300,
+                "stat": "Sum",
+                "metrics": [
+                  ["AWS/SNS", "NumberOfMessagesPublished", "TopicName", "lifelink-notifications", {"label": "Notifications Sent"}],
+                  ["AWS/SNS", "NumberOfNotificationsFailed", "TopicName", "lifelink-notifications", {"label": "Failed", "color": "#d62728"}]
+                ]
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0, "y": 19, "width": 24, "height": 6,
+              "properties": {
+                "title": "DynamoDB - Throttled Requests",
+                "region": "${AWS::Region}",
+                "period": 300,
+                "stat": "Sum",
+                "metrics": [
+                  ["AWS/DynamoDB", "ThrottledRequests", "TableName", "Donors", {"label": "Donors"}],
+                  ["AWS/DynamoDB", "ThrottledRequests", "TableName", "Requests", {"label": "Requests"}],
+                  ["AWS/DynamoDB", "ThrottledRequests", "TableName", "Matches", {"label": "Matches"}],
+                  ["AWS/DynamoDB", "ThrottledRequests", "TableName", "DonationHistory", {"label": "DonationHistory"}],
+                  ["AWS/DynamoDB", "ThrottledRequests", "TableName", "OrganRequests", {"label": "OrganRequests"}],
+                  ["AWS/DynamoDB", "ThrottledRequests", "TableName", "OrganApplications", {"label": "OrganApplications"}]
+                ]
+              }
+            }
+          ]
+        }
+
+Outputs:
+  OpsAlertsTopicArn:
+    Description: SNS Topic ARN for operational alerts
+    Value: !Ref OpsAlertsTopic
+    Export:
+      Name: LifeLink-OpsAlerts-TopicArn
+
+  DashboardURL:
+    Description: CloudWatch Dashboard URL
+    Value: !Sub 'https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=LifeLink-Operations'
