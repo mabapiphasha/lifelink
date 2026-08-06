@@ -123,7 +123,11 @@ export function HospitalDashboard() {
     setAppsError('');
     try {
       const res = await axios.get(API.getOrganApplicationsByHospital, { params: { hospitalId: hospital?.hospitalId } });
-      setOrganApplications(res.data.applications || []);
+      const apps = (res.data.applications || []).map((a: any) => ({
+        ...a,
+        id: a.id ?? a.applicationId,
+      }));
+      setOrganApplications(apps);
     } catch { setAppsError('Failed to load donor applications.'); }
     finally { setAppsLoading(false); }
   };
