@@ -31,7 +31,7 @@ function Home() {
             <Link to="/verify-code" className="hover:text-red-200 transition-colors">{t('nav.registerWithCode')}</Link>
             <Link to="/hospital" className="hover:text-red-200 transition-colors">{t('nav.hospitalDashboard')}</Link>
             <Link to="/organ" className="hover:text-red-200 transition-colors">{t('nav.organDonation')}</Link>
-            <Link to="/leaderboard" className="hover:text-red-200 transition-colors">{t('nav.leaderboard')}</Link>
+            {/* <Link to="/leaderboard" className="hover:text-red-200 transition-colors">{t('nav.leaderboard')}</Link> */}
           </div>
           <LanguageSwitcher />
         </div>
