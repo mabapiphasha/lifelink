@@ -18,6 +18,10 @@ import { BloodBankInventory } from './pages/BloodBankInventory';
 import { CooldownTracker } from './pages/CooldownTracker';
 import { UrgencyRequestManager } from './pages/UrgencyRequestManager';
 import { PredictiveDemand } from './pages/PredictiveDemand';
+import { Login } from './pages/DonorLogin';
+import { DonorProfile } from './pages/DonorProfile';
+import { ConfirmDonation } from './pages/ConfirmDonation';
+
 
 function Home() {
   const { t } = useLanguage();
@@ -27,11 +31,13 @@ function Home() {
       <nav className="bg-red-800 text-white p-4 shadow-lg">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight">🩸 LifeLink</h1>
-          <div className="flex gap-6 text-sm font-medium">
+          
+            <div className="flex gap-6 text-sm font-medium">
             <Link to="/verify-code" className="hover:text-red-200 transition-colors">{t('nav.registerWithCode')}</Link>
+            <Link to="/login" className="hover:text-red-200 transition-colors">Donor Login</Link>
             <Link to="/hospital" className="hover:text-red-200 transition-colors">{t('nav.hospitalDashboard')}</Link>
             <Link to="/organ" className="hover:text-red-200 transition-colors">{t('nav.organDonation')}</Link>
-            {/* <Link to="/leaderboard" className="hover:text-red-200 transition-colors">{t('nav.leaderboard')}</Link> */}
+            <Link to="/leaderboard" className="hover:text-red-200 transition-colors">{t('nav.leaderboard')}</Link>
           </div>
           <LanguageSwitcher />
         </div>
@@ -127,6 +133,9 @@ function App() {
             <Route path="/cooldown" element={<CooldownTracker />} />
             <Route path="/urgency" element={<UrgencyRequestManager />} />
             <Route path="/predictions" element={<PredictiveDemand />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/profile" element={<DonorProfile />} />
+            <Route path="/confirm/:requestId" element={<ConfirmDonation />} />  
           </Routes>
         </BrowserRouter>
       </HospitalAuthProvider>
