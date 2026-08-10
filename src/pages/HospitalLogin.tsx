@@ -8,7 +8,7 @@ export function HospitalLogin() {
   const navigate = useNavigate();
   const { login } = useHospitalAuth();
 
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -20,7 +20,7 @@ export function HospitalLogin() {
     setError('');
 
     try {
-      const response = await axios.post(API.hospitalLogin, { username, password });
+      const response = await axios.post(API.hospitalLogin, { email, password });
 
       if (response.data.success) {
         login(response.data.hospital);
@@ -28,7 +28,7 @@ export function HospitalLogin() {
       }
     } catch (err: any) {
       if (err.response?.status === 401) {
-        setError('Invalid username or password. Please try again.');
+        setError('Invalid email or password. Please try again.');
       } else {
         setError('Network error. Please try again.');
       }
@@ -61,17 +61,17 @@ export function HospitalLogin() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 shadow-md border border-gray-100 space-y-5">
-            {/* Username */}
+            {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
               <input
-                type="text"
+                type="email"
                 required
-                autoComplete="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="e.g. groote.schuur"
+                placeholder="e.g. admin@grooteschuur.co.za"
               />
             </div>
 
@@ -130,11 +130,23 @@ export function HospitalLogin() {
           {/* Demo credentials hint */}
           <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
             <p className="text-blue-700 text-xs font-semibold mb-2">🔑 Available Hospital Accounts:</p>
-            <div className="space-y-1 text-xs text-blue-600 font-mono">
-              <div className="flex justify-between"><span>groote.schuur</span><span className="text-blue-400">GrooteSchuur@2026</span></div>
-              <div className="flex justify-between"><span>kenyatta.nairobi</span><span className="text-blue-400">Kenyatta@2026</span></div>
-              <div className="flex justify-between"><span>chris.hani</span><span className="text-blue-400">ChrisHani@2026</span></div>
-              <div className="flex justify-between"><span>lagos.general</span><span className="text-blue-400">Lagos@2026</span></div>
+            <div className="space-y-1 text-xs text-blue-600">
+              <div className="flex justify-between items-center gap-2">
+                <span className="font-medium">Groote Schuur Hospital</span>
+                <span className="text-blue-500 font-mono text-[10px]">admin@grooteschuur.co.za</span>
+              </div>
+              <div className="flex justify-between items-center gap-2">
+                <span className="font-medium">Kenyatta National Hospital</span>
+                <span className="text-blue-500 font-mono text-[10px]">admin@kenyatta.co.ke</span>
+              </div>
+              <div className="flex justify-between items-center gap-2">
+                <span className="font-medium">Chris Hani Baragwanath</span>
+                <span className="text-blue-500 font-mono text-[10px]">admin@chrishani.co.za</span>
+              </div>
+              <div className="flex justify-between items-center gap-2">
+                <span className="font-medium">Lagos General Hospital</span>
+                <span className="text-blue-500 font-mono text-[10px]">admin@lagosgeneral.ng</span>
+              </div>
             </div>
           </div>
         </div>
