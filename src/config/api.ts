@@ -17,4 +17,8 @@ export const API = {
 
   // Donor-facing application tracking
   getOrganApplicationsByDonor: `${API_BASE_URL}/getOrganApplicationsByDonor`,
+
+  // OTP
+  sendOtp: `${API_BASE_URL}/sendOtp`,
+  verifyOtp: `${API_BASE_URL}/verifyOtp`,
 };

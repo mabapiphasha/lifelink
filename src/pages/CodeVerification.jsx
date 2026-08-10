@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -11,30 +10,27 @@ export function CodeVerification() {
   const [verified, setVerified] = useState(null);
   const navigate = useNavigate();
 
-  // Security: Attempt limiting
+  // Attempt limiting
   const [attempts, setAttempts] = useState(0);
   const [locked, setLocked] = useState(false);
   const [lockTimer, setLockTimer] = useState(0);
   const MAX_ATTEMPTS = 5;
   const LOCK_DURATION = 60;
 
-  // OTP Step
+  // OTP step
   const [otpStep, setOtpStep] = useState(false);
   const [otp, setOtp] = useState('');
   const [otpError, setOtpError] = useState('');
   const [otpLoading, setOtpLoading] = useState(false);
+  const [maskedEmail, setMaskedEmail] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
 
-  // Countdown timer when locked
+  // Lock countdown
   useEffect(() => {
     if (locked && lockTimer > 0) {
       const timer = setInterval(() => {
         setLockTimer((prev) => {
-          if (prev <= 1) {
-            setLocked(false);
-            setAttempts(0);
-            clearInterval(timer);
-            return 0;
-          }
+          if (prev <= 1) { setLocked(false); setAttempts(0); clearInterval(timer); return 0; }
           return prev - 1;
         });
       }, 1000);
@@ -42,12 +38,19 @@ export function CodeVerification() {
     }
   }, [locked, lockTimer]);
 
-  const handleVerify = async () => {
-    if (!code.trim()) {
-      setError('Please enter your registration code');
-      return;
+  // Resend cooldown countdown
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setInterval(() => {
+        setResendCooldown((prev) => { if (prev <= 1) { clearInterval(timer); return 0; } return prev - 1; });
+      }, 1000);
+      return () => clearInterval(timer);
     }
+  }, [resendCooldown]);
 
+  // STEP 1: Verify the hospital registration code
+  const handleVerify = async () => {
+    if (!code.trim()) { setError('Please enter your registration code'); return; }
     if (locked) return;
 
     setLoading(true);
@@ -58,33 +61,45 @@ export function CodeVerification() {
 
       if (response.data.valid) {
         setVerified(response.data);
-        setOtpStep(true); // Move to OTP step instead of showing success
+        // Now trigger OTP send
+        await triggerSendOtp(code.trim(), response.data);
         setAttempts(0);
       }
     } catch (err) {
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
-
       if (newAttempts >= MAX_ATTEMPTS) {
         setLocked(true);
         setLockTimer(LOCK_DURATION);
         setError(`Too many failed attempts. Locked for ${LOCK_DURATION} seconds.`);
       } else {
         const remaining = MAX_ATTEMPTS - newAttempts;
-        if (err.response) {
-          setError(`${err.response.data.error || 'Invalid code'}. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`);
-        } else {
-          setError(`Network error. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`);
-        }
+        setError(`${err.response?.data?.error || 'Invalid code'}. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`);
       }
     } finally {
       setLoading(false);
     }
   };
 
+  // Send OTP via SES
+  const triggerSendOtp = async (registrationCode, verifiedData) => {
+    try {
+      const res = await axios.post(API.sendOtp, { code: registrationCode });
+      if (res.data.success) {
+        setMaskedEmail(res.data.maskedEmail);
+        setVerified(verifiedData);
+        setOtpStep(true);
+        setResendCooldown(60);
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to send OTP. Please try again.');
+    }
+  };
+
+  // STEP 2: Verify OTP
   const handleOtpVerify = async () => {
     if (!otp.trim() || otp.length !== 6) {
-      setOtpError('Please enter the 6-digit code sent to your phone');
+      setOtpError('Please enter the 6-digit code sent to your email');
       return;
     }
 
@@ -92,30 +107,31 @@ export function CodeVerification() {
     setOtpError('');
 
     try {
-      // TODO: Replace with real OTP API when Phasha builds it
-      // await axios.post(API.verifyOtp, { code: code.trim(), otp: otp });
-
-      // Simulated: accept any 6-digit code for now
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // OTP verified — move to success screen
-      setOtpStep(false);
+      const response = await axios.post(API.verifyOtp, { code: code.trim(), otp: otp.trim() });
+      if (response.data.success) {
+        setOtpStep(false); // Move to success screen
+      }
     } catch (err) {
-      setOtpError('Invalid code. Please check your phone and try again.');
+      setOtpError(err.response?.data?.error || 'Invalid OTP. Please try again.');
     } finally {
       setOtpLoading(false);
     }
   };
 
+  // Resend OTP
   const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
     setOtpError('');
     try {
-      // TODO: Replace with real resend API
-      // await axios.post(API.resendOtp, { code: code.trim() });
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setOtpError('');
+      const res = await axios.post(API.sendOtp, { code: code.trim() });
+      if (res.data.success) {
+        setMaskedEmail(res.data.maskedEmail);
+        setResendCooldown(60);
+        setOtp('');
+        setOtpError('');
+      }
     } catch (err) {
-      setOtpError('Failed to resend. Please try again.');
+      setOtpError(err.response?.data?.error || 'Failed to resend OTP. Please try again.');
     }
   };
 
@@ -131,14 +147,14 @@ export function CodeVerification() {
     });
   };
 
-  // STEP 2: OTP Verification Screen
+  // ── STEP 2: OTP Screen ──────────────────────────────────────────────────────
   if (otpStep && verified) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-red-50 to-white">
         <nav className="bg-red-800 text-white p-4 shadow-lg">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <Link to="/" className="text-2xl font-bold tracking-tight">🩸 LifeLink</Link>
-            <span className="text-red-200 text-sm font-medium">Phone Verification</span>
+            <span className="text-red-200 text-sm font-medium">Email Verification</span>
             <Link to="/" className="text-sm hover:text-red-200 transition-colors">← Home</Link>
           </div>
         </nav>
@@ -147,16 +163,20 @@ export function CodeVerification() {
           <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
             <div className="text-center mb-8">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-3xl">📱</span>
+                <span className="text-3xl">📧</span>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">Verify Your Phone</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Check Your Email</h2>
               <p className="text-gray-500 text-sm mt-2">
-                We've sent a 6-digit code to the phone number registered at <strong>{verified.hospital}</strong>.
+                We've sent a 6-digit verification code to
+              </p>
+              <p className="text-red-600 font-semibold text-sm mt-1">{maskedEmail}</p>
+              <p className="text-gray-400 text-xs mt-1">
+                (the email you registered with at <strong>{verified.hospital}</strong>)
               </p>
             </div>
 
             <div className="bg-green-50 border border-green-200 rounded-xl p-3 mb-6 text-center">
-              <p className="text-green-700 text-sm">✅ Hospital code verified for <strong>{verified.donorName}</strong></p>
+              <p className="text-green-700 text-sm">✅ Code verified for <strong>{verified.donorName}</strong></p>
             </div>
 
             <div className="space-y-4">
@@ -166,13 +186,11 @@ export function CodeVerification() {
                   type="text"
                   maxLength={6}
                   value={otp}
-                  onChange={(e) => {
-                    setOtp(e.target.value.replace(/\D/g, ''));
-                    setOtpError('');
-                  }}
+                  onChange={(e) => { setOtp(e.target.value.replace(/\D/g, '')); setOtpError(''); }}
                   placeholder="• • • • • •"
                   className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl text-center text-2xl font-mono tracking-widest focus:border-red-500 focus:outline-none transition-colors"
                   onKeyDown={(e) => e.key === 'Enter' && handleOtpVerify()}
+                  autoFocus
                 />
               </div>
 
@@ -196,20 +214,31 @@ export function CodeVerification() {
             </div>
 
             <div className="mt-6 flex items-center justify-between">
-              <button onClick={handleResendOtp} className="text-red-600 text-sm hover:underline">
-                Resend code
+              <button
+                onClick={handleResendOtp}
+                disabled={resendCooldown > 0}
+                className={`text-sm ${resendCooldown > 0 ? 'text-gray-400 cursor-not-allowed' : 'text-red-600 hover:underline'}`}
+              >
+                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code'}
               </button>
-              <button onClick={() => { setOtpStep(false); setVerified(null); setOtp(''); }} className="text-gray-400 text-sm hover:underline">
+              <button
+                onClick={() => { setOtpStep(false); setVerified(null); setOtp(''); setOtpError(''); }}
+                className="text-gray-400 text-sm hover:underline"
+              >
                 ← Back
               </button>
             </div>
+
+            <p className="text-xs text-gray-400 text-center mt-4">
+              Didn't receive it? Check your spam folder or click Resend.
+            </p>
           </div>
         </main>
       </div>
     );
   }
 
-  // STEP 3: Success — Code + OTP Verified
+  // ── STEP 3: Success ─────────────────────────────────────────────────────────
   if (verified && !otpStep) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-red-50 to-white">
@@ -228,7 +257,7 @@ export function CodeVerification() {
                 <span className="text-3xl">✅</span>
               </div>
               <h2 className="text-2xl font-bold text-gray-900">Identity Verified!</h2>
-              <p className="text-gray-500 text-sm mt-2">Your medical screening and phone number have been confirmed.</p>
+              <p className="text-gray-500 text-sm mt-2">Your hospital code and email OTP have been confirmed.</p>
             </div>
 
             <div className="space-y-3 mb-6">
@@ -266,7 +295,7 @@ export function CodeVerification() {
     );
   }
 
-  // STEP 1: Hospital Code Entry (your original design + security)
+  // ── STEP 1: Enter Hospital Code ─────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gradient-to-b from-red-50 to-white">
       <nav className="bg-red-800 text-white p-4 shadow-lg">
@@ -295,10 +324,7 @@ export function CodeVerification() {
               <input
                 type="text"
                 value={code}
-                onChange={(e) => {
-                  setCode(e.target.value.toUpperCase());
-                  setError('');
-                }}
+                onChange={(e) => { setCode(e.target.value.toUpperCase()); setError(''); }}
                 placeholder="e.g. LL-GS-2026-A1B2"
                 disabled={locked}
                 className={`w-full px-4 py-3 border-2 rounded-xl text-center text-lg font-mono tracking-wider focus:border-red-500 focus:outline-none transition-colors ${
@@ -308,22 +334,17 @@ export function CodeVerification() {
               />
             </div>
 
-            {/* Attempt counter dots */}
             {attempts > 0 && !locked && (
               <div className="flex items-center justify-center gap-2">
                 <div className="flex gap-1">
                   {Array.from({ length: MAX_ATTEMPTS }).map((_, i) => (
-                    <div
-                      key={i}
-                      className={`w-2 h-2 rounded-full ${i < attempts ? 'bg-red-500' : 'bg-gray-200'}`}
-                    />
+                    <div key={i} className={`w-2 h-2 rounded-full ${i < attempts ? 'bg-red-500' : 'bg-gray-200'}`} />
                   ))}
                 </div>
                 <span className="text-xs text-gray-400">{MAX_ATTEMPTS - attempts} attempts left</span>
               </div>
             )}
 
-            {/* Lock timer */}
             {locked && (
               <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 text-center">
                 <p className="text-orange-700 text-sm font-medium">🔒 Locked for {lockTimer} seconds</p>
@@ -360,4 +381,3 @@ export function CodeVerification() {
     </div>
   );
 }
-
