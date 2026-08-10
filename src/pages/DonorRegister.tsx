@@ -13,6 +13,7 @@ export function DonorRegister() {
   const [formData, setFormData] = useState({
     fullName: verifiedData.donorName || '',
     email: '',
+    countryCode: '+27',
     phone: '',
     password: '',
     confirmPassword: '',
@@ -42,11 +43,17 @@ export function DonorRegister() {
       return;
     }
 
+    if (!/^\d{10}$/.test(formData.phone)) {
+      setError('Phone number must be exactly 10 digits (excluding country code)');
+      setLoading(false);
+      return;
+    }
+
     try {
       const payload: any = {
         fullName: formData.fullName,
         email: formData.email,
-        phone: formData.phone,
+        phone: `${formData.countryCode}${formData.phone}`,
         bloodType: formData.bloodType,
         location: formData.location,
       };
@@ -60,7 +67,7 @@ export function DonorRegister() {
         const donorProfile = {
           name: formData.fullName,
           email: formData.email,
-          phone: formData.phone,
+          phone: `${formData.countryCode}${formData.phone}`,
           bloodType: formData.bloodType,
           location: formData.location,
           registeredAt: new Date().toISOString().split('T')[0],
@@ -133,7 +140,30 @@ export function DonorRegister() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-            <input type="tel" required value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="+27 XX XXX XXXX" />
+            <div className="flex gap-2">
+              <select
+                value={formData.countryCode}
+                onChange={(e) => setFormData({...formData, countryCode: e.target.value})}
+                className="border border-gray-300 rounded-lg px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
+              >
+                <option value="+27">🇿🇦 +27</option>
+                <option value="+254">🇰🇪 +254</option>
+                <option value="+234">🇳🇬 +234</option>
+                <option value="+263">🇿🇼 +263</option>
+                <option value="+255">🇹🇿 +255</option>
+              </select>
+              <input
+                type="tel"
+                required
+                maxLength={10}
+                pattern="\d{10}"
+                value={formData.phone}
+                onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10)})}
+                className="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                placeholder="10-digit number"
+              />
+            </div>
+            <p className="text-xs text-gray-400 mt-1">Enter exactly 10 digits after the country code</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Blood Type</label>

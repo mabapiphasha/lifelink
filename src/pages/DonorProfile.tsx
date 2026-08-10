@@ -12,15 +12,6 @@ interface DonorData {
   lastDonation?: string;
 }
 
-interface OrganApplication {
-  id: string;
-  organ: string;
-  hospital: string;
-  appliedAt: string;
-  status: 'Pending' | 'Approved' | 'Rejected' | 'Shortlisted';
-  rejectionReason?: string;
-}
-
 interface DonationRecord {
   id: string;
   date: string;
@@ -32,7 +23,6 @@ interface DonationRecord {
 export function DonorProfile() {
   const navigate = useNavigate();
   const [donor, setDonor] = useState<DonorData | null>(null);
-  const [organApplications, setOrganApplications] = useState<OrganApplication[]>([]);
   const [donationHistory, setDonationHistory] = useState<DonationRecord[]>([]);
   const [cooldownDays, setCooldownDays] = useState(0);
   const [canDonate, setCanDonate] = useState(true);
@@ -47,26 +37,6 @@ export function DonorProfile() {
 
     const donorData = JSON.parse(stored);
     setDonor(donorData);
-
-    // TODO: Replace with API calls when Phasha connects backend
-    // Simulated organ applications
-    setOrganApplications([
-      {
-        id: 'OA-001',
-        organ: 'Kidney',
-        hospital: 'Groote Schuur Hospital',
-        appliedAt: '2026-07-15',
-        status: 'Pending',
-      },
-      {
-        id: 'OA-002',
-        organ: 'Liver',
-        hospital: 'Tygerberg Hospital',
-        appliedAt: '2026-06-20',
-        status: 'Rejected',
-        rejectionReason: 'BMI above threshold (32). Recommended to reapply after reaching BMI < 30.',
-      },
-    ]);
 
     // Simulated donation history
     setDonationHistory([
@@ -95,20 +65,6 @@ export function DonorProfile() {
   const handleLogout = () => {
     localStorage.removeItem('currentDonor');
     navigate('/');
-  };
-
-  const statusColor = (status: string) => {
-    switch (status) {
-      case 'Approved':
-      case 'Shortlisted':
-        return 'bg-green-100 text-green-700';
-      case 'Pending':
-        return 'bg-yellow-100 text-yellow-700';
-      case 'Rejected':
-        return 'bg-red-100 text-red-700';
-      default:
-        return 'bg-gray-100 text-gray-500';
-    }
   };
 
   if (!donor) return null;
@@ -150,18 +106,10 @@ export function DonorProfile() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <Link to="/organ-bulletin" className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center hover:shadow-md transition-shadow">
-            <span className="text-2xl">🫁</span>
-            <p className="text-sm font-medium text-gray-700 mt-2">Browse Organ Requests</p>
-          </Link>
+        <div className="grid grid-cols-1 gap-4 mb-6">
           <Link to="/cooldown" className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center hover:shadow-md transition-shadow">
             <span className="text-2xl">📅</span>
             <p className="text-sm font-medium text-gray-700 mt-2">Cooldown Tracker</p>
-          </Link>
-          <Link to="/leaderboard" className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center hover:shadow-md transition-shadow">
-            <span className="text-2xl">🏆</span>
-            <p className="text-sm font-medium text-gray-700 mt-2">Leaderboard</p>
           </Link>
         </div>
 
@@ -185,34 +133,7 @@ export function DonorProfile() {
           )}
         </div>
 
-        {/* Organ Applications */}
-        <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">🫁 Organ Donation Applications</h2>
-          {organApplications.length === 0 ? (
-            <p className="text-gray-400 text-sm">No organ donation applications yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {organApplications.map((app) => (
-                <div key={app.id} className="p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900">{app.organ} Donation</p>
-                      <p className="text-gray-400 text-xs">{app.hospital} • Applied {app.appliedAt}</p>
-                    </div>
-                    <span className={`text-xs px-3 py-1 rounded-full font-medium ${statusColor(app.status)}`}>
-                      {app.status}
-                    </span>
-                  </div>
-                  {app.status === 'Rejected' && app.rejectionReason && (
-                    <div className="mt-3 bg-red-50 border border-red-100 rounded-lg p-3">
-                      <p className="text-red-600 text-xs"><strong>Reason:</strong> {app.rejectionReason}</p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+
       </main>
     </div>
   );
