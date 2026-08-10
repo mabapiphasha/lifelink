@@ -35,9 +35,9 @@ function Home() {
             <div className="flex gap-6 text-sm font-medium">
             <Link to="/verify-code" className="hover:text-red-200 transition-colors">{t('nav.registerWithCode')}</Link>
             <Link to="/login" className="hover:text-red-200 transition-colors">Donor Login</Link>
-            <Link to="/hospital" className="hover:text-red-200 transition-colors">{t('nav.hospitalDashboard')}</Link>
+            {/* <Link to="/hospital" className="hover:text-red-200 transition-colors">{t('nav.hospitalDashboard')}</Link> */}
             <Link to="/organ" className="hover:text-red-200 transition-colors">{t('nav.organDonation')}</Link>
-            <Link to="/leaderboard" className="hover:text-red-200 transition-colors">{t('nav.leaderboard')}</Link>
+            {/* <Link to="/leaderboard" className="hover:text-red-200 transition-colors">{t('nav.leaderboard')}</Link> */}
           </div>
           <LanguageSwitcher />
         </div>
