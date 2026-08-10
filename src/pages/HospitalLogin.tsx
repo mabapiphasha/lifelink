@@ -128,7 +128,7 @@ export function HospitalLogin() {
           </form>
 
           {/* Demo credentials hint */}
-          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
+          {/* <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
             <p className="text-blue-700 text-xs font-semibold mb-2">🔑 Available Hospital Accounts:</p>
             <div className="space-y-1 text-xs text-blue-600">
               <div className="flex justify-between items-center gap-2">
@@ -148,7 +148,7 @@ export function HospitalLogin() {
                 <span className="text-blue-500 font-mono text-[10px]">admin@lagosgeneral.ng</span>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       </main>
     </div>
