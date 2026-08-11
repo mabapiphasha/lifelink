@@ -163,25 +163,38 @@ export function DonorProfile() {
       return;
     }
 
-    // Use donorId if available, otherwise use email as identifier
-    const identifier = donor.donorId || donor.email;
-    
-    if (!identifier) {
-      setProfileError('Unable to identify donor. Please log in again.');
-      return;
-    }
-
     setProfileSaving(true);
     setProfileError('');
 
     try {
-      // If donorId is missing, we need to fetch it first from the Donors table
       let donorIdToUse = donor.donorId;
       
+      // If donorId is missing, fetch it using email
       if (!donorIdToUse) {
-        console.warn('donorId not found in localStorage, using email as fallback');
-        // For now, show a helpful error message
-        setProfileError('Profile update requires donor ID. Please re-register or contact support.');
+        console.log('donorId not found, fetching by email...');
+        try {
+          const lookupResponse = await axios.post(API.getDonorByEmail, {
+            email: donor.email
+          });
+          
+          if (lookupResponse.data && lookupResponse.data.donor) {
+            donorIdToUse = lookupResponse.data.donor.donorId;
+            
+            // Update local storage with the donorId
+            const updatedDonor = { ...donor, donorId: donorIdToUse };
+            setDonor(updatedDonor);
+            localStorage.setItem('currentDonor', JSON.stringify(updatedDonor));
+          }
+        } catch (lookupError) {
+          console.error('Failed to lookup donor:', lookupError);
+          setProfileError('Could not find your donor profile. Please re-register.');
+          setProfileSaving(false);
+          return;
+        }
+      }
+
+      if (!donorIdToUse) {
+        setProfileError('Unable to identify your donor profile. Please contact support.');
         setProfileSaving(false);
         return;
       }

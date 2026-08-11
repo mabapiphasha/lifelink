@@ -1,0 +1,10 @@
+{
+  "name": "get-donor-by-email-lambda",
+  "version": "1.0.0",
+  "description": "Fetch donor profile by email",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.550.0",
+    "@aws-sdk/lib-dynamodb": "^3.550.0"
+  }
+}

@@ -24,4 +24,5 @@ export const API = {
 
   // Donor profile
   updateDonorProfile: `${API_BASE_URL}/updateDonorProfile`,
+  getDonorByEmail: `${API_BASE_URL}/getDonorByEmail`,
 };
