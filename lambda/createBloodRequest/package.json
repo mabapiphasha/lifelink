@@ -1,0 +1,12 @@
+{
+  "name": "create-blood-request-lambda",
+  "version": "2.0.0",
+  "description": "Create blood request with automatic donor matching and notifications",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.550.0",
+    "@aws-sdk/lib-dynamodb": "^3.550.0",
+    "@aws-sdk/client-ses": "^3.550.0",
+    "uuid": "^9.0.0"
+  }
+}

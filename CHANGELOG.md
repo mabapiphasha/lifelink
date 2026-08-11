@@ -1,5 +1,37 @@
 # Changelog
 
+## [2026-08-11] - Automatic Donor Matching on Blood Request
+
+### Added
+- **Automatic Donor Matching**: When a hospital creates a blood request, the system now:
+  - ✅ Automatically finds matching donors (blood type + location)
+  - ✅ Sends email notifications to ALL matched donors immediately
+  - ✅ Updates blood request with number of donors notified
+  - ✅ No manual "Match Donors" button needed anymore!
+
+### Changed
+- **createBloodRequest Lambda** (lambda/createBloodRequest/index.js)
+  - Now includes automatic donor matching logic
+  - Sends professional HTML emails to matched donors
+  - Filters by both blood type AND location
+  - Returns number of donors notified in response
+  - Increased timeout to 30 seconds to handle email sending
+
+### How It Works
+1. Hospital staff creates a blood request
+2. System automatically queries Donors table for matching blood type
+3. Filters donors to only those in the same city as the hospital
+4. Sends personalized email to each matched donor
+5. Updates request with count of donors notified
+6. Done! ✅
+
+### Example Flow
+- **Groote Schuur Hospital (Cape Town)** requests **O+ blood**
+- System finds all **O+ donors**
+- Filters to only **Cape Town** donors
+- Sends emails to **Cape Town O+ donors** automatically
+- Hospital sees "3 donors notified" message
+
 ## [2026-08-11] - Location-Based Donor Matching System
 
 ### Added
