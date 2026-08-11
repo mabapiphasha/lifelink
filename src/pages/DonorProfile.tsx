@@ -1,8 +1,11 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { API } from '../config/api';
 
 interface DonorData {
+  donorId: string;
   name: string;
   email: string;
   phone: string;
@@ -45,6 +48,30 @@ export function DonorProfile() {
   const [unavailableUntil, setUnavailableUntil] = useState('');
   const [showStatusPanel, setShowStatusPanel] = useState(false);
   const [statusSaved, setStatusSaved] = useState(false);
+
+  // Edit profile state
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [editLocation, setEditLocation] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editName, setEditName] = useState('');
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
+  const [profileError, setProfileError] = useState('');
+
+  const LOCATIONS = [
+    'Cape Town',
+    'Johannesburg',
+    'Nairobi',
+    'Dublin',
+    'Lagos',
+    'Pretoria',
+    'Durban',
+    'Port Elizabeth',
+    'Bloemfontein',
+    'Mombasa',
+    'Kisumu',
+    'Cork'
+  ];
 
   useEffect(() => {
     // Load donor from localStorage (will be Cognito session later)
@@ -120,6 +147,56 @@ export function DonorProfile() {
     setTimeout(() => setStatusSaved(false), 3000);
   };
 
+  const handleEditProfile = () => {
+    if (!donor) return;
+    setEditLocation(donor.location);
+    setEditPhone(donor.phone);
+    setEditName(donor.name);
+    setShowEditProfile(true);
+    setProfileError('');
+    setProfileSaved(false);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!donor || !donor.donorId) {
+      setProfileError('Donor ID not found');
+      return;
+    }
+
+    setProfileSaving(true);
+    setProfileError('');
+
+    try {
+      const response = await axios.post(API.updateDonorProfile, {
+        donorId: donor.donorId,
+        location: editLocation,
+        phone: editPhone,
+        fullName: editName
+      });
+
+      if (response.data && response.data.donor) {
+        const updatedDonor = {
+          ...donor,
+          location: response.data.donor.location,
+          phone: response.data.donor.phone,
+          name: response.data.donor.fullName
+        };
+
+        setDonor(updatedDonor);
+        localStorage.setItem('currentDonor', JSON.stringify(updatedDonor));
+        
+        setShowEditProfile(false);
+        setProfileSaved(true);
+        setTimeout(() => setProfileSaved(false), 3000);
+      }
+    } catch (error: any) {
+      console.error('Failed to update profile:', error);
+      setProfileError(error.response?.data?.message || 'Failed to update profile. Please try again.');
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
   if (!donor) return null;
 
   return (
@@ -143,12 +220,12 @@ export function DonorProfile() {
             <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center">
               <span className="text-3xl font-bold text-red-700">{donor.bloodType}</span>
             </div>
-            <div>
+            <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-900">{donor.name}</h1>
               <p className="text-gray-500 text-sm">{donor.email} • {donor.phone}</p>
               <p className="text-gray-400 text-xs mt-1">📍 {donor.location} • Registered {donor.registeredAt}</p>
             </div>
-            <div className="ml-auto">
+            <div className="flex flex-col gap-2">
               {donationStatus === 'unavailable' ? (
                 <span className="bg-red-100 text-red-700 px-4 py-2 rounded-full text-sm font-medium">🔴 Unavailable to Donate</span>
               ) : canDonate ? (
@@ -156,9 +233,99 @@ export function DonorProfile() {
               ) : (
                 <span className="bg-orange-100 text-orange-700 px-4 py-2 rounded-full text-sm font-medium">⏳ Cooldown: {cooldownDays} days left</span>
               )}
+              <button
+                onClick={handleEditProfile}
+                className="text-sm text-red-600 hover:text-red-800 font-medium border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-all"
+              >
+                ✏️ Edit Profile
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Edit Profile Panel */}
+        {showEditProfile && (
+          <div className="bg-white rounded-2xl p-6 shadow-md border border-red-200 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">✏️ Edit Profile</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Update your contact information and location</p>
+              </div>
+              <button
+                onClick={() => setShowEditProfile(false)}
+                className="text-sm text-gray-600 hover:text-gray-800 font-medium"
+              >
+                ✕ Cancel
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                  placeholder="Your full name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">📍 Location</label>
+                <select
+                  value={editLocation}
+                  onChange={(e) => setEditLocation(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                >
+                  <option value="">Select your location</option>
+                  {LOCATIONS.map((loc) => (
+                    <option key={loc} value={loc}>{loc}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  💡 You'll only be matched with hospitals in your location
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">📱 Phone Number</label>
+                <input
+                  type="tel"
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                  placeholder="+27 123 456 7890"
+                />
+              </div>
+
+              {profileError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
+                  <p className="text-red-700 text-sm font-medium">❌ {profileError}</p>
+                </div>
+              )}
+
+              <button
+                onClick={handleSaveProfile}
+                disabled={profileSaving || !editLocation || !editPhone || !editName}
+                className={`w-full py-3 rounded-xl text-sm font-semibold transition-all ${
+                  profileSaving || !editLocation || !editPhone || !editName
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-red-600 hover:bg-red-700 text-white hover:scale-105'
+                }`}
+              >
+                {profileSaving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Success toast for profile update */}
+        {profileSaved && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center mb-6">
+            <p className="text-green-700 text-sm font-medium">✅ Profile updated successfully!</p>
+          </div>
+        )}
 
         {/* Donation Status */}
         <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 mb-6">

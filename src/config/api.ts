@@ -21,4 +21,7 @@ export const API = {
   // OTP
   sendOtp: `${API_BASE_URL}/sendOtp`,
   verifyOtp: `${API_BASE_URL}/verifyOtp`,
+
+  // Donor profile
+  updateDonorProfile: `${API_BASE_URL}/updateDonorProfile`,
 };

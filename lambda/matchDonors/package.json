@@ -1,0 +1,12 @@
+{
+  "name": "match-donors-lambda",
+  "version": "1.0.0",
+  "description": "Location-based blood donor matching with email notifications",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.550.0",
+    "@aws-sdk/lib-dynamodb": "^3.550.0",
+    "@aws-sdk/client-sns": "^3.550.0",
+    "@aws-sdk/client-ses": "^3.550.0"
+  }
+}
