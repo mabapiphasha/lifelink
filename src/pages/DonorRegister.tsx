@@ -183,6 +183,8 @@ export function DonorRegister() {
               <option value="Pretoria">Pretoria</option>
               <option value="Nairobi">Nairobi</option>
               <option value="Lagos">Lagos</option>
+              <option value="Dublin">Dublin</option>
+
             </select>
           </div>
 
