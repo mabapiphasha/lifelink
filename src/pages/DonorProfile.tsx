@@ -158,8 +158,16 @@ export function DonorProfile() {
   };
 
   const handleSaveProfile = async () => {
-    if (!donor || !donor.donorId) {
-      setProfileError('Donor ID not found');
+    if (!donor) {
+      setProfileError('Donor information not found');
+      return;
+    }
+
+    // Use donorId if available, otherwise use email as identifier
+    const identifier = donor.donorId || donor.email;
+    
+    if (!identifier) {
+      setProfileError('Unable to identify donor. Please log in again.');
       return;
     }
 
@@ -167,8 +175,19 @@ export function DonorProfile() {
     setProfileError('');
 
     try {
+      // If donorId is missing, we need to fetch it first from the Donors table
+      let donorIdToUse = donor.donorId;
+      
+      if (!donorIdToUse) {
+        console.warn('donorId not found in localStorage, using email as fallback');
+        // For now, show a helpful error message
+        setProfileError('Profile update requires donor ID. Please re-register or contact support.');
+        setProfileSaving(false);
+        return;
+      }
+
       const response = await axios.post(API.updateDonorProfile, {
-        donorId: donor.donorId,
+        donorId: donorIdToUse,
         location: editLocation,
         phone: editPhone,
         fullName: editName
@@ -179,7 +198,8 @@ export function DonorProfile() {
           ...donor,
           location: response.data.donor.location,
           phone: response.data.donor.phone,
-          name: response.data.donor.fullName
+          name: response.data.donor.fullName,
+          donorId: response.data.donor.donorId || donorIdToUse
         };
 
         setDonor(updatedDonor);
@@ -191,7 +211,8 @@ export function DonorProfile() {
       }
     } catch (error: any) {
       console.error('Failed to update profile:', error);
-      setProfileError(error.response?.data?.message || 'Failed to update profile. Please try again.');
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to update profile. Please try again.';
+      setProfileError(errorMsg);
     } finally {
       setProfileSaving(false);
     }
@@ -258,6 +279,15 @@ export function DonorProfile() {
                 ✕ Cancel
               </button>
             </div>
+
+            {/* Debug info - Remove in production */}
+            {!donor.donorId && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                <p className="text-yellow-700 text-xs">
+                  ⚠️ Donor ID missing. Email: {donor.email}
+                </p>
+              </div>
+            )}
 
             <div className="space-y-4">
               <div>
