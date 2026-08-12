@@ -25,4 +25,8 @@ export const API = {
   // Donor profile
   updateDonorProfile: `${API_BASE_URL}/updateDonorProfile`,
   getDonorByEmail: `${API_BASE_URL}/getDonorByEmail`,
+
+  // Donor blood request responses
+  getDonorBloodRequests: `${API_BASE_URL}/getDonorBloodRequests`,
+  respondToBloodRequest: `${API_BASE_URL}/respondToBloodRequest`,
 };

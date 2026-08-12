@@ -1,0 +1,10 @@
+{
+  "name": "get-donor-blood-requests",
+  "version": "1.0.0",
+  "description": "Get blood requests matching a donor's profile",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.600.0",
+    "@aws-sdk/lib-dynamodb": "^3.600.0"
+  }
+}

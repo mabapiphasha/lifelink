@@ -20,6 +20,7 @@ import { UrgencyRequestManager } from './pages/UrgencyRequestManager';
 import { PredictiveDemand } from './pages/PredictiveDemand';
 import { Login } from './pages/DonorLogin';
 import { DonorProfile } from './pages/DonorProfile';
+import { DonorBloodRequests } from './pages/DonorBloodRequests';
 import { ConfirmDonation } from './pages/ConfirmDonation';
 
 
@@ -135,6 +136,7 @@ function App() {
             <Route path="/predictions" element={<PredictiveDemand />} />
             <Route path="/login" element={<Login />} />
             <Route path="/profile" element={<DonorProfile />} />
+            <Route path="/donor-blood-requests" element={<DonorBloodRequests />} />
             <Route path="/confirm/:requestId" element={<ConfirmDonation />} />  
           </Routes>
         </BrowserRouter>
