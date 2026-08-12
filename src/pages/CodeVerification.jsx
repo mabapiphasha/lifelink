@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -60,8 +61,7 @@ export function CodeVerification() {
       const response = await axios.post(API.verifyCode, { code: code.trim() });
 
       if (response.data.valid) {
-        setVerified(response.data);
-        // Now trigger OTP send
+        // DO NOT set verified here — let triggerSendOtp handle it after OTP step is set
         await triggerSendOtp(code.trim(), response.data);
         setAttempts(0);
       }
@@ -87,8 +87,8 @@ export function CodeVerification() {
       const res = await axios.post(API.sendOtp, { code: registrationCode });
       if (res.data.success) {
         setMaskedEmail(res.data.maskedEmail);
-        setVerified(verifiedData);
-        setOtpStep(true);
+        setOtpStep(true);              // Set OTP step FIRST
+        setVerified(verifiedData);     // Then set verified data
         setResendCooldown(60);
       }
     } catch (err) {
@@ -147,14 +147,14 @@ export function CodeVerification() {
     });
   };
 
-  // ── STEP 2: OTP Screen ──────────────────────────────────────────────────────
+  // ── STEP 2: OTP Screen (checked FIRST — no donor details shown) ─────────────
   if (otpStep && verified) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-red-50 to-white">
         <nav className="bg-red-800 text-white p-4 shadow-lg">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <Link to="/" className="text-2xl font-bold tracking-tight">🩸 LifeLink</Link>
-            <span className="text-red-200 text-sm font-medium">Email Verification</span>
+            <span className="text-red-200 text-sm font-medium">Identity Verification</span>
             <Link to="/" className="text-sm hover:text-red-200 transition-colors">← Home</Link>
           </div>
         </nav>
@@ -165,18 +165,15 @@ export function CodeVerification() {
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">📧</span>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">Check Your Email</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Verify Your Identity</h2>
               <p className="text-gray-500 text-sm mt-2">
-                We've sent a 6-digit verification code to
+                We've sent a 6-digit verification code to your registered email.
               </p>
               <p className="text-red-600 font-semibold text-sm mt-1">{maskedEmail}</p>
-              <p className="text-gray-400 text-xs mt-1">
-                (the email you registered with at <strong>{verified.hospital}</strong>)
-              </p>
             </div>
 
             <div className="bg-green-50 border border-green-200 rounded-xl p-3 mb-6 text-center">
-              <p className="text-green-700 text-sm">✅ Code verified for <strong>{verified.donorName}</strong></p>
+              <p className="text-green-700 text-sm">✅ Hospital code verified — please confirm your identity</p>
             </div>
 
             <div className="space-y-4">
@@ -238,14 +235,14 @@ export function CodeVerification() {
     );
   }
 
-  // ── STEP 3: Success ─────────────────────────────────────────────────────────
+  // ── STEP 3: Success (ONLY shows after OTP is verified — no flash) ───────────
   if (verified && !otpStep) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-red-50 to-white">
         <nav className="bg-red-800 text-white p-4 shadow-lg">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <Link to="/" className="text-2xl font-bold tracking-tight">🩸 LifeLink</Link>
-            <span className="text-red-200 text-sm font-medium">Donor Code Verification</span>
+            <span className="text-red-200 text-sm font-medium">Registration Complete</span>
             <Link to="/" className="text-sm hover:text-red-200 transition-colors">← Home</Link>
           </div>
         </nav>
@@ -376,8 +373,15 @@ export function CodeVerification() {
               <strong>Don't have a code?</strong> Visit a participating hospital for a free medical screening. After passing, you'll receive a unique registration code.
             </p>
           </div>
+
+          <div className="mt-4 text-center">
+            <Link to="/login" className="text-red-600 text-sm hover:underline">
+              Already registered? Login here →
+            </Link>
+          </div>
         </div>
       </main>
     </div>
   );
 }
+
