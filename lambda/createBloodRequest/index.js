@@ -1,7 +1,7 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand, QueryCommand, GetCommand } = require('@aws-sdk/lib-dynamodb');
 const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID } = require('crypto');
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const dynamodb = DynamoDBDocumentClient.from(client);
@@ -22,7 +22,7 @@ exports.handler = async (event) => {
       };
     }
 
-    const requestId = uuidv4();
+    const requestId = randomUUID();
 
     // Get hospital details to get location
     const hospitalResult = await dynamodb.send(new GetCommand({
@@ -87,6 +87,7 @@ exports.handler = async (event) => {
     console.log(`After location filter: ${eligibleDonors.length} eligible donors in ${hospitalLocation}`);
 
     // Send email notifications to matched donors
+    let emailsSentCount = 0;
     if (eligibleDonors.length > 0) {
       const emailPromises = eligibleDonors.map(async (donor) => {
         const emailParams = {
@@ -189,15 +190,22 @@ Thank you for being a LifeLink donor. Your generosity saves lives.
 
         try {
           await ses.send(new SendEmailCommand(emailParams));
-          console.log(`Email sent to ${donor.email}`);
+          console.log(`✅ Email sent successfully to ${donor.email}`);
           return { email: donor.email, status: 'sent' };
         } catch (error) {
-          console.error(`Failed to send email to ${donor.email}:`, error);
+          console.error(`❌ Failed to send email to ${donor.email}:`, error.message);
+          // If SES sandbox mode, log specific message
+          if (error.message && error.message.includes('not verified')) {
+            console.error(`   Note: SES is in sandbox mode. Email ${donor.email} is not verified.`);
+          }
           return { email: donor.email, status: 'failed', error: error.message };
         }
       });
 
-      await Promise.all(emailPromises);
+      const emailResults = await Promise.all(emailPromises);
+      emailsSentCount = emailResults.filter(r => r.status === 'sent').length;
+      
+      console.log(`Email summary: ${emailsSentCount} sent, ${emailResults.length - emailsSentCount} failed out of ${eligibleDonors.length} donors`);
 
       // Update blood request with donors invited count
       await dynamodb.send(new PutCommand({
@@ -216,7 +224,7 @@ Thank you for being a LifeLink donor. Your generosity saves lives.
         }
       }));
 
-      console.log(`Notified ${eligibleDonors.length} donors`);
+      console.log(`Blood request updated: ${eligibleDonors.length} donors invited, ${emailsSentCount} emails sent successfully`);
     }
 
     return {
@@ -225,8 +233,9 @@ Thank you for being a LifeLink donor. Your generosity saves lives.
       body: JSON.stringify({
         success: true,
         requestId,
-        message: `Blood request created and ${eligibleDonors.length} donor(s) notified`,
-        donorsNotified: eligibleDonors.length
+        message: `Blood request created successfully. Found ${eligibleDonors.length} matching donor(s).`,
+        donorsMatched: eligibleDonors.length,
+        emailsSent: emailsSentCount
       })
     };
 
