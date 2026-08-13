@@ -5,14 +5,10 @@ export type DonorStatus = 'Available' | 'Cooldown' | 'Unavailable';
 
 export type OrganType =
   | 'Kidney'
-  | 'Liver'
-  | 'Heart'
-  | 'Lung'
-  | 'Pancreas'
-  | 'Intestine'
   | 'Cornea'
   | 'Skin'
   | 'Bone Marrow'
+  | 'Intestine'
   | 'Heart Valve';
 
 export type OrganApplicationStatus =

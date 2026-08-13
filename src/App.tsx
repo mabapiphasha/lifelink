@@ -15,7 +15,6 @@ import { DonorApplication } from './pages/DonorApplication';
 import { CodeVerification } from './pages/CodeVerification';
 import { HospitalCodeIssuance } from './pages/HospitalCodeIssuance';
 import { BloodBankInventory } from './pages/BloodBankInventory';
-import { CooldownTracker } from './pages/CooldownTracker';
 import { UrgencyRequestManager } from './pages/UrgencyRequestManager';
 import { PredictiveDemand } from './pages/PredictiveDemand';
 import { Login } from './pages/DonorLogin';
@@ -131,7 +130,6 @@ function App() {
             <Route path="/prescreening" element={<PreScreening />} />
           <Route path="/donor-application" element={<DonorApplication />} />
             <Route path="/inventory" element={<BloodBankInventory />} />
-            <Route path="/cooldown" element={<CooldownTracker />} />
             <Route path="/urgency" element={<UrgencyRequestManager />} />
             <Route path="/predictions" element={<PredictiveDemand />} />
             <Route path="/login" element={<Login />} />

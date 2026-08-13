@@ -4,19 +4,18 @@ import { BloodType, UrgencyTier, BloodRequest, OrganRequest, OrganApplication, O
 import axios from 'axios';
 import { API } from '../config/api';
 import { useHospitalAuth } from '../context/HospitalAuthContext';
+import { CooldownTrackerContent } from './CooldownTracker';
 
 const ORGAN_TYPES: OrganType[] = [
-  'Kidney', 'Liver',
-  'Cornea', 'Skin', 'Bone Marrow',
+  'Kidney', 'Cornea', 'Skin', 'Bone Marrow', 'Intestine', 'Heart Valve',
 ];
 
 const BLOOD_TYPES: BloodType[] = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 const organIcon = (organ: string) => {
   const icons: Record<string, string> = {
-    Kidney: '🫘', Liver: '🫁', Heart: '🫀', Lung: '🫁',
-    Pancreas: '🧬', Intestine: '🧬', Cornea: '👁️',
-    Skin: '🧴', 'Bone Marrow': '🦴', 'Heart Valve': '🫀',
+    Kidney: '🫘', Cornea: '👁️',
+    Skin: '🧴', 'Bone Marrow': '🦴', Intestine: '🧬', 'Heart Valve': '🫀',
   };
   return icons[organ] || '🏥';
 };
@@ -52,8 +51,8 @@ export function HospitalDashboard() {
   const navigate = useNavigate();
   const { hospital, logout, isLoggedIn } = useHospitalAuth();
 
-  // Active tab: 'blood' | 'organ-requests' | 'organ-applications'
-  const [activeTab, setActiveTab] = useState<'blood' | 'organ-requests' | 'organ-applications'>('blood');
+  // Active tab: 'blood' | 'organ-requests' | 'organ-applications' | 'cooldown'
+  const [activeTab, setActiveTab] = useState<'blood' | 'organ-requests' | 'organ-applications' | 'cooldown'>('blood');
 
   // --- Blood state ---
   const [bloodRequests, setBloodRequests] = useState<BloodRequest[]>([]);
@@ -243,6 +242,7 @@ export function HospitalDashboard() {
             { key: 'blood', label: '🩸 Blood Requests' },
             { key: 'organ-requests', label: '🫀 Organ Requests' },
             { key: 'organ-applications', label: '📋 Donor Applications' },
+            { key: 'cooldown', label: '⏳ Cooldown Tracker' },
           ].map(({ key, label }) => (
             <button
               key={key}
@@ -618,6 +618,16 @@ export function HospitalDashboard() {
                 })}
               </div>
             )}
+          </div>
+        )}
+
+        {/* ── COOLDOWN TRACKER TAB ── */}
+        {activeTab === 'cooldown' && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-700">56-Day Cooldown Tracker</h2>
+            </div>
+            <CooldownTrackerContent />
           </div>
         )}
 

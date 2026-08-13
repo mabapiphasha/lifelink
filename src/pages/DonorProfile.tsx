@@ -470,14 +470,6 @@ export function DonorProfile() {
           )}
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 gap-4 mb-6">
-          <Link to="/cooldown" className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center hover:shadow-md transition-shadow">
-            <span className="text-2xl">📅</span>
-            <p className="text-sm font-medium text-gray-700 mt-2">Cooldown Tracker</p>
-          </Link>
-        </div>
-
         {/* Donation History */}
         <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 mb-6">
           <h2 className="text-lg font-bold text-gray-900 mb-4">🩸 Donation History</h2>

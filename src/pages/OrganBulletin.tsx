@@ -87,9 +87,8 @@ export function OrganBulletin() {
 
   const organIcon = (organ: string) => {
     const icons: Record<string, string> = {
-      Kidney: '🫘', Liver: '🫁', Heart: '🫀', Lung: '🫁',
-      Pancreas: '🧬', Intestine: '🧬', Cornea: '👁️',
-      Skin: '🧴', 'Bone Marrow': '🦴', 'Heart Valve': '🫀',
+      Kidney: '🫘', Cornea: '👁️',
+      Skin: '🧴', 'Bone Marrow': '🦴', Intestine: '🧬', 'Heart Valve': '🫀',
     };
     return icons[organ] || '🏥';
   };
