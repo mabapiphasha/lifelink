@@ -6,8 +6,8 @@ import { API } from '../config/api';
 import { useHospitalAuth } from '../context/HospitalAuthContext';
 
 const ORGAN_TYPES: OrganType[] = [
-  'Kidney', 'Liver', 'Heart', 'Lung', 'Pancreas',
-  'Intestine', 'Cornea', 'Skin', 'Bone Marrow', 'Heart Valve',
+  'Kidney', 'Liver',
+  'Cornea', 'Skin', 'Bone Marrow',
 ];
 
 const BLOOD_TYPES: BloodType[] = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
