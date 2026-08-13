@@ -82,8 +82,13 @@ exports.handler = async (event) => {
       };
     }
 
+    const APP_BASE_URL = 'https://d150bjmbzkzpih.cloudfront.net';
+
     // Send email notifications to all eligible donors
     const emailPromises = eligibleDonors.map(async (donor) => {
+      // Direct link to the confirm/decline page for this specific request
+      const confirmUrl = `${APP_BASE_URL}/confirm-donation/${requestId}`;
+
       const emailParams = {
         Source: 'tmmoroka@amazon.com', // Verified SES email
         Destination: {
@@ -91,7 +96,7 @@ exports.handler = async (event) => {
         },
         Message: {
           Subject: {
-            Data: `🩸 Urgent: Your Blood is Needed at ${hospitalName}`
+            Data: `🩸 Urgent: ${hospitalName} needs your blood — please respond`
           },
           Body: {
             Html: {
@@ -99,49 +104,64 @@ exports.handler = async (event) => {
                 <html>
                   <head>
                     <style>
-                      body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                      body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
                       .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                      .header { background-color: #dc2626; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+                      .header { background-color: #991b1b; color: white; padding: 24px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+                      .header h1 { margin: 0; font-size: 22px; }
                       .content { background-color: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
-                      .button { background-color: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 20px 0; }
-                      .info-box { background-color: white; padding: 15px; border-left: 4px solid #dc2626; margin: 15px 0; }
-                      .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+                      .info-box { background-color: white; padding: 16px; border-left: 4px solid #dc2626; margin: 16px 0; border-radius: 0 6px 6px 0; }
+                      .cta-section { text-align: center; background-color: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 24px; margin: 20px 0; }
+                      .btn-confirm { background-color: #16a34a; color: white !important; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 15px; margin: 6px; }
+                      .btn-decline { background-color: #6b7280; color: white !important; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 15px; margin: 6px; }
+                      .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #9ca3af; }
                     </style>
                   </head>
                   <body>
                     <div class="container">
                       <div class="header">
-                        <h1>🩸 Blood Donation Request</h1>
+                        <h1>🩸 Urgent Blood Donation Request</h1>
+                        <p style="margin: 8px 0 0; opacity: 0.85; font-size: 14px;">A hospital needs your help — please confirm your availability</p>
                       </div>
                       <div class="content">
-                        <p>Dear ${donor.fullName},</p>
-                        <p>We need your help! <strong>${hospitalName}</strong> has an urgent need for your blood type.</p>
-                        
+                        <p>Dear <strong>${donor.fullName}</strong>,</p>
+                        <p>
+                          <strong>${hospitalName}</strong> urgently needs blood type <strong>${bloodType}</strong>.
+                          You've been matched as an eligible donor in your area.
+                        </p>
+
                         <div class="info-box">
-                          <strong>📍 Hospital:</strong> ${hospitalName}<br>
+                          <strong>🏥 Hospital:</strong> ${hospitalName}<br>
                           <strong>📍 Location:</strong> ${hospitalLocation}<br>
-                          <strong>🩸 Blood Type Needed:</strong> ${bloodType}<br>
-                          <strong>⏰ Status:</strong> URGENT
+                          <strong>🩸 Blood Type:</strong> ${bloodType}<br>
+                          <strong>⏰ Urgency:</strong> CRITICAL — response needed within 2 hours<br>
+                          ${hospital.contact ? `<strong>📞 Contact:</strong> ${hospital.contact}` : ''}
                         </div>
 
-                        <p><strong>You are a perfect match!</strong> Your contribution can save lives.</p>
-                        
-                        <p>Please visit the hospital as soon as possible if you are able to donate.</p>
-                        
-                        <div style="text-align: center;">
-                          <a href="http://d150bjmbzkzpih.cloudfront.net/" class="button">View Details on LifeLink</a>
+                        <div class="cta-section">
+                          <p style="font-size: 16px; font-weight: bold; margin: 0 0 16px; color: #92400e;">
+                            Can you come to donate today?
+                          </p>
+                          <a href="${confirmUrl}" class="btn-confirm">✅ Yes, I'm Coming</a>
+                          <a href="${confirmUrl}" class="btn-decline">❌ Can't Make It</a>
+                          <p style="font-size: 12px; color: #9ca3af; margin: 12px 0 0;">
+                            Clicking either button takes you to the LifeLink app to confirm your response.
+                          </p>
                         </div>
 
-                        <p style="margin-top: 30px; font-size: 14px;">
-                          <strong>Important Notes:</strong><br>
-                          • Ensure you are well-rested and have eaten before donating<br>
-                          • Bring a valid ID<br>
-                          • Contact the hospital if you have any questions: ${hospital.contact || 'N/A'}
+                        <p style="font-size: 14px;">
+                          <strong>If you're coming, please note:</strong><br>
+                          • Arrive well-rested and having eaten a meal<br>
+                          • Bring a valid government-issued ID<br>
+                          • The process takes about 30–45 minutes
                         </p>
 
                         <div class="footer">
                           <p>Thank you for being a LifeLink donor. Your generosity saves lives.</p>
-                          <p>© 2026 LifeLink | Blood & Organ Donation Platform</p>
+                          <p>© 2026 LifeLink | Blood &amp; Organ Donation Platform</p>
+                          <p>
+                            <a href="${APP_BASE_URL}/profile" style="color: #9ca3af;">Your profile</a> ·
+                            <a href="${APP_BASE_URL}/blood-requests" style="color: #9ca3af;">All requests</a>
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -150,27 +170,26 @@ exports.handler = async (event) => {
               `
             },
             Text: {
-              Data: `
-Dear ${donor.fullName},
+              Data: `Dear ${donor.fullName},
 
-URGENT: Blood Donation Request
-
-${hospitalName} urgently needs blood type ${bloodType}.
+URGENT: ${hospitalName} needs blood type ${bloodType} — please respond.
 
 Hospital: ${hospitalName}
 Location: ${hospitalLocation}
-Blood Type Needed: ${bloodType}
+Blood Type: ${bloodType}
+Urgency: CRITICAL — response needed within 2 hours
+${hospital.contact ? `Contact: ${hospital.contact}` : ''}
 
-You are a perfect match! Please visit the hospital as soon as possible if you are able to donate.
+Can you come to donate today?
 
-Visit LifeLink: http://d150bjmbzkzpih.cloudfront.net/
+👉 Respond here (confirm or decline): ${confirmUrl}
 
-Important Notes:
-- Ensure you are well-rested and have eaten before donating
-- Bring a valid ID
-- Contact: ${hospital.contact || 'N/A'}
+If you're coming:
+- Arrive well-rested and having eaten
+- Bring a valid government-issued ID
+- The process takes about 30-45 minutes
 
-Thank you for being a LifeLink donor. Your generosity saves lives.
+Thank you for being a LifeLink donor.
 
 © 2026 LifeLink
               `

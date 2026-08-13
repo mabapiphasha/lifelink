@@ -27,78 +27,69 @@ function Home() {
   const { t } = useLanguage();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-red-50 to-white">
-      <nav className="bg-red-800 text-white p-4 shadow-lg">
+    <div className="min-h-screen bg-gray-50">
+      <nav className="bg-red-800 text-white px-6 py-4 shadow-md">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">🩸 LifeLink</h1>
-          
-            <div className="flex gap-6 text-sm font-medium">
+          <h1 className="text-xl font-bold tracking-tight">LifeLink</h1>
+          <div className="flex gap-6 text-sm font-medium">
             <Link to="/verify-code" className="hover:text-red-200 transition-colors">{t('nav.registerWithCode')}</Link>
             <Link to="/login" className="hover:text-red-200 transition-colors">Donor Login</Link>
-            {/* <Link to="/hospital" className="hover:text-red-200 transition-colors">{t('nav.hospitalDashboard')}</Link> */}
             <Link to="/organ" className="hover:text-red-200 transition-colors">{t('nav.organDonation')}</Link>
-            {/* <Link to="/leaderboard" className="hover:text-red-200 transition-colors">{t('nav.leaderboard')}</Link> */}
           </div>
           <LanguageSwitcher />
         </div>
       </nav>
 
       <main className="max-w-6xl mx-auto px-8">
+        {/* Hero */}
         <div className="text-center py-20">
-          <div className="text-6xl mb-6">🩸</div>
-          <h2 className="text-5xl font-extrabold text-gray-900 mb-4">{t('home.heroTitle')}<br/>{t('home.heroTitle2')}</h2>
+          <h2 className="text-5xl font-extrabold text-gray-900 mb-4">{t('home.heroTitle')}<br />{t('home.heroTitle2')}</h2>
           <p className="text-gray-500 text-lg mb-10 max-w-xl mx-auto">{t('home.heroSubtitle')}</p>
           <div className="flex gap-4 justify-center">
-            <Link to="/verify-code" className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg shadow-red-200 transition-all hover:scale-105 active:scale-95">{t('home.registerBtn')}</Link>
-            <Link to="/hospital-login" className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg shadow-green-200 transition-all hover:scale-105 active:scale-95">{t('home.hospitalBtn')}</Link>
+            <Link to="/verify-code" className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded font-semibold text-base shadow transition-colors">
+              {t('home.registerBtn')}
+            </Link>
+            <Link to="/hospital-login" className="bg-gray-800 hover:bg-gray-900 text-white px-8 py-4 rounded font-semibold text-base shadow transition-colors">
+              {t('home.hospitalBtn')}
+            </Link>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-8 pb-20">
-          <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100 text-center hover:shadow-xl transition-shadow">
-            <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">🔍</span>
+        {/* Features */}
+        <div className="grid grid-cols-3 gap-6 pb-20">
+          {[
+            { title: t('home.realTimeMatching'), desc: t('home.realTimeDesc') },
+            { title: t('home.urgencyTiers'), desc: t('home.urgencyDesc') },
+            { title: t('home.verifiedDonors'), desc: t('home.verifiedDesc') },
+          ].map(({ title, desc }) => (
+            <div key={title} className="bg-white rounded border border-gray-200 p-8 shadow-sm hover:shadow-md transition-shadow">
+              <h3 className="font-bold text-gray-900 mb-2 text-base">{title}</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">{desc}</p>
             </div>
-            <h3 className="font-bold text-gray-900 mb-2 text-lg">{t('home.realTimeMatching')}</h3>
-            <p className="text-gray-500 text-sm leading-relaxed">{t('home.realTimeDesc')}</p>
-          </div>
-          <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100 text-center hover:shadow-xl transition-shadow">
-            <div className="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">⚡</span>
-            </div>
-            <h3 className="font-bold text-gray-900 mb-2 text-lg">{t('home.urgencyTiers')}</h3>
-            <p className="text-gray-500 text-sm leading-relaxed">{t('home.urgencyDesc')}</p>
-          </div>
-          <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100 text-center hover:shadow-xl transition-shadow">
-            <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">✅</span>
-            </div>
-            <h3 className="font-bold text-gray-900 mb-2 text-lg">{t('home.verifiedDonors')}</h3>
-            <p className="text-gray-500 text-sm leading-relaxed">{t('home.verifiedDesc')}</p>
-          </div>
+          ))}
         </div>
 
-        {/* How It Works Section */}
+        {/* How It Works */}
         <div className="pb-20">
           <h3 className="text-3xl font-bold text-center text-gray-900 mb-12">{t('home.howItWorks')}</h3>
           <div className="grid grid-cols-4 gap-6">
             {[
-              { step: '1', icon: '🏥', title: t('home.step1Title'), desc: t('home.step1Desc') },
-              { step: '2', icon: '🔬', title: t('home.step2Title'), desc: t('home.step2Desc') },
-              { step: '3', icon: '🔑', title: t('home.step3Title'), desc: t('home.step3Desc') },
-              { step: '4', icon: '📱', title: t('home.step4Title'), desc: t('home.step4Desc') },
-            ].map(({ step, icon, title, desc }) => (
+              { step: '1', title: t('home.step1Title'), desc: t('home.step1Desc') },
+              { step: '2', title: t('home.step2Title'), desc: t('home.step2Desc') },
+              { step: '3', title: t('home.step3Title'), desc: t('home.step3Desc') },
+              { step: '4', title: t('home.step4Title'), desc: t('home.step4Desc') },
+            ].map(({ step, title, desc }) => (
               <div key={step} className="text-center">
-                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">{icon}</div>
-                <div className="bg-red-600 text-white w-7 h-7 rounded-full flex items-center justify-center mx-auto mb-3 text-sm font-bold">{step}</div>
-                <h4 className="font-bold text-gray-900 mb-1">{title}</h4>
+                <div className="bg-red-600 text-white w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-4 text-sm font-bold">{step}</div>
+                <h4 className="font-bold text-gray-900 mb-1 text-sm">{title}</h4>
                 <p className="text-gray-500 text-xs">{desc}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="bg-red-800 rounded-2xl p-12 text-center text-white mb-20">
+        {/* CTA banner */}
+        <div className="bg-red-800 rounded p-12 text-center text-white mb-20">
           <h3 className="text-3xl font-bold mb-3">{t('home.statHeadline')}</h3>
           <p className="text-red-200 text-lg max-w-lg mx-auto">{t('home.statSubtext')}</p>
         </div>
@@ -134,8 +125,10 @@ function App() {
             <Route path="/predictions" element={<PredictiveDemand />} />
             <Route path="/login" element={<Login />} />
             <Route path="/profile" element={<DonorProfile />} />
+            <Route path="/blood-requests" element={<DonorBloodRequests />} />
             <Route path="/donor-blood-requests" element={<DonorBloodRequests />} />
-            <Route path="/confirm/:requestId" element={<ConfirmDonation />} />  
+            <Route path="/confirm-donation/:requestId" element={<ConfirmDonation />} />
+            <Route path="/confirm/:requestId" element={<ConfirmDonation />} />
           </Routes>
         </BrowserRouter>
       </HospitalAuthProvider>

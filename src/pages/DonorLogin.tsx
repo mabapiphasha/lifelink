@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -21,8 +20,6 @@ export function Login() {
     setLoading(true);
 
     try {
-      // TODO: Replace with Cognito auth when Phasha sets it up
-      // For now, simulate login with localStorage
       const donors = JSON.parse(localStorage.getItem('registeredDonors') || '[]');
       const donor = donors.find((d: any) => d.email === email);
 
@@ -40,20 +37,19 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-red-50 to-white">
-      <nav className="bg-red-800 text-white p-4 shadow-lg">
+    <div className="min-h-screen bg-gray-50">
+      <nav className="bg-red-800 text-white px-6 py-4 shadow-md">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link to="/" className="text-2xl font-bold">🩸 LifeLink</Link>
-          <Link to="/verify-code" className="text-sm font-medium hover:text-red-200">New Donor? Register →</Link>
+          <Link to="/" className="text-xl font-bold tracking-tight">LifeLink</Link>
+          <Link to="/verify-code" className="text-sm text-red-200 hover:text-white transition-colors">
+            New Donor? Register
+          </Link>
         </div>
       </nav>
 
-      <main className="max-w-md mx-auto px-8 py-16">
-        <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100">
+      <main className="max-w-md mx-auto px-4 py-16">
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-8">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">🔐</span>
-            </div>
             <h1 className="text-2xl font-bold text-gray-900">Donor Login</h1>
             <p className="text-gray-500 text-sm mt-2">Access your donor profile and donation history</p>
           </div>
@@ -66,7 +62,7 @@ export function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full border border-gray-300 rounded px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
 
@@ -77,30 +73,30 @@ export function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full border border-gray-300 rounded px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-red-600 text-sm">❌ {error}</p>
+              <div className="bg-red-50 border border-red-200 rounded p-3">
+                <p className="text-red-600 text-sm">{error}</p>
               </div>
             )}
 
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-3 rounded-lg font-semibold transition-all ${
+              className={`w-full py-3 rounded font-semibold text-sm transition-colors ${
                 loading
-                  ? 'bg-gray-400 cursor-not-allowed text-white'
-                  : 'bg-red-600 hover:bg-red-700 text-white hover:scale-105'
+                  ? 'bg-gray-300 cursor-not-allowed text-gray-500'
+                  : 'bg-red-600 hover:bg-red-700 text-white'
               }`}
             >
-              {loading ? '⏳ Logging in...' : 'Login'}
+              {loading ? 'Logging in...' : 'Login'}
             </button>
           </form>
 
-          <div className="mt-6 text-center space-y-3">
+          <div className="mt-6 text-center">
             <p className="text-gray-400 text-xs">
               Don't have an account?{' '}
               <Link to="/verify-code" className="text-red-600 hover:underline font-medium">
@@ -113,4 +109,3 @@ export function Login() {
     </div>
   );
 }
-

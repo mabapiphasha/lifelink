@@ -219,6 +219,12 @@ export function HospitalDashboard() {
           <span className="font-bold text-lg">LifeLink</span>
         </div>
         <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate('/cooldown')}
+            className="bg-red-600 hover:bg-red-800 text-white text-xs px-4 py-2 rounded-lg transition-all border border-red-500"
+          >
+            Cooldown Tracker
+          </button>
           <span className="text-sm opacity-90">🏥 {hospital?.hospitalName}</span>
           <button
             onClick={() => { logout(); navigate('/hospital-login'); }}
